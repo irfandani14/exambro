@@ -167,73 +167,57 @@
                          class="w-28 h-28 object-contain mx-auto filter drop-shadow-lg hover:scale-105 transition duration-300">
                     
                     <div>
-                        <span class="px-3 py-1 bg-sky-500/20 text-sky-400 border border-sky-400/30 rounded-full text-xs font-semibold uppercase tracking-wider inline-block mb-2">
-                            Portal Resmi Ujian Berbasis Komputer & HP
-                        </span>
-                        <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-                            SMA NEGERI 1 LABUHAN HAJI
-                        </h1>
-                        <p class="text-slate-400 text-sm mt-2 max-w-lg mx-auto">
-                            Aplikasi Sistem CBT Exambro Terkunci. Silakan pilih hak akses peran Anda di bawah ini untuk memulai.
+                    <span class="px-3 py-1 bg-sky-500/20 text-sky-400 border border-sky-400/30 rounded-full text-xs font-semibold uppercase tracking-wider inline-block mb-2">
+                        Portal Resmi Ujian Berbasis Komputer & HP
+                    </span>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                        SMA NEGERI 1 LABUHAN HAJI
+                    </h1>
+                    <p class="text-slate-400 text-sm mt-2 max-w-lg mx-auto">
+                        Aplikasi Sistem CBT Exambro Terkunci. Silakan pilih hak akses di bawah ini untuk memulai.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2 LOGIN ROLE CARDS (SISWA & ADMIN) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
+                
+                <!-- Role Card 1: SISWA -->
+                <div onclick="loginAsSiswa()" class="group cursor-pointer bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-800 hover:border-sky-500 p-6 rounded-2xl transition duration-300 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
+                    <div class="w-16 h-16 bg-sky-500/10 text-sky-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div class="space-y-2 mb-6">
+                        <h3 class="text-xl font-bold text-white group-hover:text-sky-400 transition">Login Siswa</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Mode Ujian Terkunci (Lockdown). Proteksi anti-curang, anti-screenshot, dan alarm aktif penuh.
                         </p>
                     </div>
+                    <button class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk Ujian Siswa
+                    </button>
                 </div>
 
-                <!-- 3 LOGIN ROLE CARDS -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
-                    
-                    <!-- Role Card 1: SISWA -->
-                    <div onclick="loginAsSiswa()" class="group cursor-pointer bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-800 hover:border-sky-500 p-6 rounded-2xl transition duration-300 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-16 h-16 bg-sky-500/10 text-sky-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:scale-110 transition">
-                            <i class="fa-solid fa-user-graduate"></i>
-                        </div>
-                        <div class="space-y-2 mb-6">
-                            <h3 class="text-xl font-bold text-white group-hover:text-sky-400 transition">Login Siswa</h3>
-                            <p class="text-xs text-slate-400 leading-relaxed">
-                                Mode Ujian Terkunci (Lockdown). Proteksi anti-curang, anti-screenshot, dan alarm aktif penuh.
-                            </p>
-                        </div>
-                        <button class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-right-to-bracket"></i> Masuk Ujian Siswa
-                        </button>
+                <!-- Role Card 2: ADMIN -->
+                <div onclick="openRoleLoginModal('admin')" class="group cursor-pointer bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-800 hover:border-amber-500 p-6 rounded-2xl transition duration-300 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
+                    <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-user-gear"></i>
                     </div>
-
-                    <!-- Role Card 2: GURU -->
-                    <div onclick="openRoleLoginModal('guru')" class="group cursor-pointer bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-800 hover:border-emerald-500 p-6 rounded-2xl transition duration-300 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-16 h-16 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:scale-110 transition">
-                            <i class="fa-solid fa-chalkboard-user"></i>
-                        </div>
-                        <div class="space-y-2 mb-6">
-                            <h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition">Login Guru</h3>
-                            <p class="text-xs text-slate-400 leading-relaxed">
-                                Akses Pengawas Ujian & Guru Mata Pelajaran. Alarm dan proteksi sistem dinonaktifkan.
-                            </p>
-                        </div>
-                        <button class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-key"></i> Login Guru (Pengawas)
-                        </button>
+                    <div class="space-y-2 mb-6">
+                        <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Login Admin</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            Kelola Generator QR Code terenkripsi, ubah password keluar, dan pantau log kecurangan.
+                        </p>
                     </div>
-
-                    <!-- Role Card 3: ADMIN -->
-                    <div onclick="openRoleLoginModal('admin')" class="group cursor-pointer bg-slate-900/90 hover:bg-slate-800 border-2 border-slate-800 hover:border-amber-500 p-6 rounded-2xl transition duration-300 shadow-xl flex flex-col justify-between text-center relative overflow-hidden">
-                        <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 group-hover:scale-110 transition">
-                            <i class="fa-solid fa-user-gear"></i>
-                        </div>
-                        <div class="space-y-2 mb-6">
-                            <h3 class="text-xl font-bold text-white group-hover:text-amber-400 transition">Login Admin</h3>
-                            <p class="text-xs text-slate-400 leading-relaxed">
-                                Kelola Generator QR Code terenkripsi, ubah password keluar, dan pantau log kecurangan.
-                            </p>
-                        </div>
-                        <button class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-shield-cat"></i> Login Admin IT
-                        </button>
-                    </div>
-
+                    <button class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-shield-cat"></i> Login Admin IT
+                    </button>
                 </div>
-            </section>
-            
-            <!-- VIEW 1: HOME MENU DASHBOARD -->
+
+            </div>
+        </section>
+        
+        <!-- VIEW 1: HOME MENU DASHBOARD -->
             <section id="view-dashboard" class="hidden space-y-6">
                     <!-- Card 5: Pengembang -->
                     <div onclick="switchView('developer')" class="group cursor-pointer bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-purple-500/50 p-6 rounded-2xl transition duration-300 shadow-md flex flex-col justify-between">
@@ -329,22 +313,28 @@
                 <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                     <div>
                         <h2 class="text-2xl font-bold text-emerald-400 flex items-center gap-2">
-                            <i class="fa-solid fa-qrcode"></i> Pemindai QR-Code Ujian
+                            <i class="fa-solid fa-qrcode"></i> Pemindai QR-Code Ujian Siswa
                         </h2>
-                        <p class="text-xs text-slate-400">Pindai kode QR rahasia dari layar pengawas / admin</p>
+                        <p class="text-xs text-slate-400">Pindai kode QR rahasia hasil generate dari Halaman Admin Proktor</p>
                     </div>
-                    <button onclick="switchView('dashboard')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-300">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
+                    <button onclick="handleScanBack()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg text-slate-300">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Portal Utama
                     </button>
                 </div>
 
                 <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col items-center">
+                    <div class="w-full text-center mb-3">
+                        <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[11px] font-semibold">
+                            <i class="fa-solid fa-shield-halved mr-1"></i> Mode Pemindaian Terkunci
+                        </span>
+                    </div>
+
                     <!-- Scanner Frame -->
                     <div class="w-full relative bg-slate-950 rounded-xl overflow-hidden border-2 border-emerald-500/50 min-h-[260px] flex flex-col items-center justify-center p-2">
                         <div id="qr-reader" class="w-full"></div>
                         <div id="qr-scanner-fallback" class="text-center p-6 space-y-3">
                             <i class="fa-solid fa-camera text-4xl text-emerald-400/60 animate-pulse"></i>
-                            <p class="text-xs text-slate-400">Klik tombol di bawah untuk mengaktifkan kamera pemindai</p>
+                            <p class="text-xs text-slate-400">Arahkan kamera ke QR-Code Ujian di layar Proktor/Admin</p>
                         </div>
                     </div>
 
@@ -359,14 +349,14 @@
 
                     <!-- Manual Encrypted Payload Simulator / Fallback -->
                     <div class="w-full border-t border-slate-800 mt-6 pt-4 text-left">
-                        <label class="block text-xs font-semibold text-slate-300 mb-2">Atau Paste Kode Enkripsi QR Admin:</label>
+                        <label class="block text-xs font-semibold text-slate-300 mb-2">Atau Tempel Kode Enkripsi QR Admin:</label>
                         <div class="flex gap-2">
                             <input type="text" id="manual-qr-payload" placeholder="EXAMBRO::SMAN1LH::..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
                             <button onclick="processQRPayload(document.getElementById('manual-qr-payload').value)" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-500">
                                 Buka
                             </button>
                         </div>
-                        <p class="text-[10px] text-slate-500 mt-1">Hanya mendukung format terenkripsi: EXAMBRO::SMAN1LH::[NamaUjian]::[URL]</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Sistem hanya membaca QR-Code berenkripsi resmi: EXAMBRO::SMAN1LH::[Ujian]::[URL]</p>
                     </div>
                 </div>
             </section>
@@ -684,9 +674,8 @@
     <script>
         // Global App State
         let adminPassword = localStorage.getItem('exambro_admin_pwd') || 'keluar12345';
-        const GURU_PASSWORD_DEFAULT = 'guru12345';
         const ADMIN_PASSWORD_DEFAULT = 'admin12345';
-        let currentRole = null; // 'siswa', 'guru', 'admin'
+        let currentRole = null; // 'siswa', 'admin'
         let currentView = 'portal';
         let pendingRoleTarget = null;
         
@@ -717,8 +706,8 @@
         function loginAsSiswa() {
             currentRole = 'siswa';
             document.getElementById('current-role-badge').innerText = 'Siswa';
-            showToast("Masuk sebagai Peran SISWA. Silakan pindai QR-Code Ujian dari Admin!", "info");
-            // Direct student to Scan QR-Code page immediately
+            showToast("Masuk sebagai SISWA. Fokus pada pemindaian QR-Code Ujian dari Admin!", "info");
+            // Direct student exclusively to Scan QR-Code page
             switchView('scan');
         }
 
@@ -732,12 +721,9 @@
             inputEl.value = "";
             errEl.classList.add('hidden');
 
-            if (role === 'guru') {
-                titleEl.innerHTML = `<i class="fa-solid fa-chalkboard-user text-emerald-400"></i> Login Guru (Pengawas)`;
-                descEl.innerText = "Masukkan kata sandi guru untuk menonaktifkan alarm & proteksi ujian. (Default: guru12345)";
-            } else if (role === 'admin') {
+            if (role === 'admin') {
                 titleEl.innerHTML = `<i class="fa-solid fa-user-gear text-amber-400"></i> Login Administrator IT`;
-                descEl.innerText = "Masukkan kata sandi admin untuk mengakses panel generator QR & log. (Default: admin12345)";
+                descEl.innerText = "Masukkan kata sandi admin untuk mengakses panel generator QR & log.";
             }
 
             document.getElementById('role-login-modal').classList.remove('hidden');
@@ -752,19 +738,7 @@
             const inputPwd = document.getElementById('role-password-input').value;
             const errEl = document.getElementById('role-login-error');
 
-            if (pendingRoleTarget === 'guru') {
-                if (inputPwd === GURU_PASSWORD_DEFAULT) {
-                    currentRole = 'guru';
-                    document.getElementById('current-role-badge').innerText = 'Guru (Pengawas)';
-                    closeRoleLoginModal();
-                    stopAlarmSystem();
-                    dismissPrivacyWarning();
-                    showToast("Login Berhasil! Masuk sebagai GURU. Alarm kecurangan dinonaktifkan.", "success");
-                    switchView('dashboard');
-                } else {
-                    errEl.classList.remove('hidden');
-                }
-            } else if (pendingRoleTarget === 'admin') {
+            if (pendingRoleTarget === 'admin') {
                 if (inputPwd === ADMIN_PASSWORD_DEFAULT || inputPwd === adminPassword) {
                     currentRole = 'admin';
                     document.getElementById('current-role-badge').innerText = 'Administrator';
@@ -788,8 +762,21 @@
             switchView('portal');
         }
 
+        function handleScanBack() {
+            if (currentRole === 'siswa') {
+                logoutRole();
+            } else {
+                switchView('dashboard');
+            }
+        }
+
         // View Navigation Switcher
         function switchView(viewName) {
+            // Guard for Student role: Restrict access solely to Scan QR, Exam, or Portal
+            if (currentRole === 'siswa' && viewName !== 'scan' && viewName !== 'exam' && viewName !== 'portal') {
+                viewName = 'scan';
+            }
+
             currentView = viewName;
             const views = ['portal', 'dashboard', 'instructions', 'scan', 'url', 'admin', 'developer', 'exam'];
             views.forEach(v => {
@@ -820,8 +807,7 @@
            SECURITY & ANTI-CHEATING PROTECTION ENGINE
            ========================================== */
         function initSecurityListeners() {
-            // Disable security alarm checks if on Admin page or logged in as Admin/Guru
-            const isProtectedAdmin = () => (currentRole === 'guru' || currentRole === 'admin' || currentView === 'admin');
+            const isProtectedAdmin = () => (currentRole === 'admin' || currentView === 'admin');
 
             // 1. Prevent Right Click
             document.addEventListener('contextmenu', (e) => {
@@ -840,23 +826,19 @@
             document.addEventListener('keydown', (e) => {
                 if (isProtectedAdmin()) return;
 
-                // F12 or Developer Tools
                 if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j'))) {
                     e.preventDefault();
                     registerViolation("Mencoba membuka Developer Tools");
                 }
-                // PrintScreen / Screenshot
                 if (e.key === 'PrintScreen' || e.key === 'Snapshot') {
                     e.preventDefault();
                     triggerPrivacyMask();
                     registerViolation("Mencoba Tangkapan Layar (Screenshot)");
                 }
-                // Ctrl+U (View Source)
                 if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
                     e.preventDefault();
                     registerViolation("Mencoba melihat kode sumber (Ctrl+U)");
                 }
-                // Alt+Tab or Meta key
                 if (e.altKey || e.metaKey) {
                     registerViolation("Mencoba menekan Alt/Windows Key untuk berpindah aplikasi");
                 }
@@ -889,9 +871,8 @@
             });
         }
 
-        // Register Violations Log & Update Badge
         function registerViolation(reason) {
-            if (currentRole === 'guru' || currentRole === 'admin' || currentView === 'admin') return;
+            if (currentRole === 'admin' || currentView === 'admin') return;
 
             violationCount++;
             document.getElementById('violation-count').innerText = violationCount;
@@ -907,7 +888,7 @@
         }
 
         function triggerPrivacyMask() {
-            if (currentRole === 'guru' || currentRole === 'admin' || currentView === 'admin') return;
+            if (currentRole === 'admin' || currentView === 'admin') return;
 
             document.getElementById('app-viewport').classList.add('blur-protection');
             document.getElementById('privacy-mask').classList.remove('hidden');
@@ -922,8 +903,7 @@
            AUDIO SYNTHESIZER ALARM SYSTEM
            ========================================== */
         function triggerCheatAlarm(reasonText) {
-            // Alarm disabled on Admin Page or for Admin/Guru roles
-            if (currentRole === 'guru' || currentRole === 'admin' || currentView === 'admin') {
+            if (currentRole === 'admin' || currentView === 'admin') {
                 stopAlarmSystem();
                 return;
             }
@@ -944,322 +924,8 @@
                     const gainNode = audioCtx.createGain();
                     
                     alarmOscillator.type = 'sawtooth';
-                    alarmOscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 tone
+                    alarmOscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
                     
-                    // Siren effect modulation
-                    let isHigh = false;
-                    setInterval(() => {
-                        if (alarmOscillator && audioCtx) {
-                            alarmOscillator.frequency.setValueAtTime(isHigh ? 880 : 1200, audioCtx.currentTime);
-                            isHigh = !isHigh;
-                        }
-                    }, 250);
-
-                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                    alarmOscillator.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    alarmOscillator.start();
-                }
-            } catch (err) {
-                console.log("Audio play prevented or not supported", err);
-            }
-        }
-
-        function stopAlarmSystem() {
-            document.getElementById('alarm-overlay').classList.add('hidden');
-            if (alarmOscillator) {
-                try {
-                    alarmOscillator.stop();
-                    alarmOscillator.disconnect();
-                } catch(e){}
-                alarmOscillator = null;
-            }
-        }
-
-        /* ==========================================
-           QR SCANNER & PROPRIETARY DECODER
-           ========================================== */
-        function startQRScanner() {
-            document.getElementById('qr-scanner-fallback').classList.add('hidden');
-            if (!qrScannerInstance) {
-                qrScannerInstance = new Html5Qrcode("qr-reader");
-            }
-
-            qrScannerInstance.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 220, height: 220 } },
-                (decodedText) => {
-                    processQRPayload(decodedText);
-                    stopQRScanner();
-                },
-                (errorMessage) => {
-                    // Ignore scan loop errors
-                }
-            ).catch(err => {
-                showToast("Kamera tidak dapat diakses atau diblokir!", "error");
-                document.getElementById('qr-scanner-fallback').classList.remove('hidden');
-            });
-        }
-
-        function stopQRScanner() {
-            if (qrScannerInstance) {
-                qrScannerInstance.stop().then(() => {
-                    document.getElementById('qr-scanner-fallback').classList.remove('hidden');
-                }).catch(err => console.log(err));
-            }
-        }
-
-        function processQRPayload(payload) {
-            if (!payload) {
-                showToast("Masukkan payload QR Code yang valid!", "warning");
-                return;
-            }
-
-            // Strictly validate QR Payload generated from Admin page (EXAMBRO::SMAN1LH::...)
-            if (payload.startsWith("EXAMBRO::SMAN1LH::")) {
-                const parts = payload.split("::");
-                const examTitle = parts[2] || "Ujian Semester SMAN 1 Labuhan Haji";
-                const examUrl = parts[3] || "https://forms.google.com";
-
-                showToast("QR Code Valid! Membuka Mode Ujian...", "success");
-                launchExamMode(examTitle, examUrl);
-            } else {
-                showToast("QR CODE TIDAK VALID! Hanya dapat membaca QR-Code resmi hasil generate Halaman Admin.", "error");
-                if (currentRole === 'siswa') {
-                    triggerCheatAlarm("QR Code yang dipindai BUKAN QR resmi terenkripsi dari Admin Exambro SMAN 1 Labuhan Haji!");
-                }
-            }
-        }
-
-        function logoutRole() {
-            stopAlarmSystem();
-            dismissPrivacyWarning();
-            currentRole = null;
-            document.getElementById('current-role-badge').innerText = 'Belum Login';
-            showToast("Kembali ke Portal Utama.", "info");
-            switchView('portal');
-        }
-
-        // View Navigation Switcher
-        function switchView(viewName) {
-            const views = ['portal', 'dashboard', 'instructions', 'scan', 'url', 'admin', 'developer', 'exam'];
-            views.forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                if (el) el.classList.add('hidden');
-            });
-
-            const target = document.getElementById(`view-${viewName}`);
-            if (target) {
-                target.classList.remove('hidden');
-            }
-
-            // Stop scanner if navigating away from scan view
-            if (viewName !== 'scan' && qrScannerInstance) {
-                stopQRScanner();
-            }
-        }
-
-        // Toast & Modal Notification System
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-            
-            const toast = document.createElement('div');
-            const bg = type === 'success' ? 'bg-emerald-900/95 border-emerald-500 text-emerald-100' :
-                       type === 'error' ? 'bg-rose-900/95 border-rose-500 text-rose-100' :
-                       type === 'warning' ? 'bg-amber-900/95 border-amber-500 text-amber-100' :
-                       'bg-slate-800/95 border-sky-500 text-slate-100';
-                       
-            const icon = type === 'success' ? 'fa-check-circle' :
-                         type === 'error' ? 'fa-circle-xmark' :
-                         type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info';
-
-            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs font-semibold backdrop-blur-md transition-all duration-300 ${bg}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
-            
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
-            }, 3500);
-        }
-
-        function showConfirm(message, onConfirm) {
-            const modal = document.getElementById('confirm-modal');
-            const msgEl = document.getElementById('confirm-modal-msg');
-            const okBtn = document.getElementById('confirm-modal-ok');
-            const cancelBtn = document.getElementById('confirm-modal-cancel');
-
-            if (!modal || !msgEl || !okBtn || !cancelBtn) return;
-
-            msgEl.innerText = message;
-            modal.classList.remove('hidden');
-
-            const cleanup = () => {
-                modal.classList.add('hidden');
-                okBtn.onclick = null;
-                cancelBtn.onclick = null;
-            };
-
-            okBtn.onclick = () => {
-                cleanup();
-                if (onConfirm) onConfirm();
-            };
-
-            cancelBtn.onclick = () => {
-                cleanup();
-            };
-        }
-
-        function autoRequestFullscreenOnce() {
-            if (!document.fullscreenElement) {
-                toggleFullscreen();
-            }
-        }
-
-        // View Navigation Switcher
-        function switchView(viewName) {
-            const views = ['dashboard', 'instructions', 'scan', 'url', 'admin', 'developer', 'exam'];
-            views.forEach(v => {
-                const el = document.getElementById(`view-${v}`);
-                if (el) el.classList.add('hidden');
-            });
-
-            const target = document.getElementById(`view-${viewName}`);
-            if (target) {
-                target.classList.remove('hidden');
-            }
-
-            // Stop scanner if navigating away from scan view
-            if (viewName !== 'scan' && qrScannerInstance) {
-                stopQRScanner();
-            }
-        }
-
-        /* ==========================================
-           SECURITY & ANTI-CHEATING PROTECTION ENGINE
-           ========================================== */
-        function initSecurityListeners() {
-            // 1. Prevent Right Click
-            document.addEventListener('contextmenu', (e) => {
-                if (currentRole === 'guru' || currentRole === 'admin') return;
-                e.preventDefault();
-                registerViolation("Mencoba klik kanan / menu konteks");
-                return false;
-            });
-
-            // 2. Prevent Copy, Cut, Paste
-            document.addEventListener('copy', (e) => { if (currentRole === 'siswa') { e.preventDefault(); registerViolation("Mencoba menyalin teks (Copy)"); } });
-            document.addEventListener('cut', (e) => { if (currentRole === 'siswa') { e.preventDefault(); registerViolation("Mencoba memotong teks (Cut)"); } });
-            document.addEventListener('paste', (e) => { if (currentRole === 'siswa') { e.preventDefault(); registerViolation("Mencoba menempel teks (Paste)"); } });
-
-            // 3. Block Shortcuts (F12, PrintScreen, Alt+Tab simulation, Ctrl+U, Ctrl+Shift+I, etc.)
-            document.addEventListener('keydown', (e) => {
-                if (currentRole === 'guru' || currentRole === 'admin') return;
-
-                // F12 or Developer Tools
-                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j'))) {
-                    e.preventDefault();
-                    registerViolation("Mencoba membuka Developer Tools");
-                }
-                // PrintScreen / Screenshot
-                if (e.key === 'PrintScreen' || e.key === 'Snapshot') {
-                    e.preventDefault();
-                    triggerPrivacyMask();
-                    registerViolation("Mencoba Tangkapan Layar (Screenshot)");
-                }
-                // Ctrl+U (View Source)
-                if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
-                    e.preventDefault();
-                    registerViolation("Mencoba melihat kode sumber (Ctrl+U)");
-                }
-                // Alt+Tab or Meta key
-                if (e.altKey || e.metaKey) {
-                    registerViolation("Mencoba menekan Alt/Windows Key untuk berpindah aplikasi");
-                }
-            });
-
-            // 4. Page Visibility (Tab switch or minimize app)
-            document.addEventListener('visibilitychange', () => {
-                if (currentRole === 'guru' || currentRole === 'admin') return;
-
-                if (document.hidden) {
-                    triggerPrivacyMask();
-                    registerViolation("Berpindah Tab / Meminimalkan Aplikasi Exambro!");
-                    triggerCheatAlarm("Siswa Terdeteksi Berpindah Aplikasi atau Meminimalkan Layar Ujian!");
-                }
-            });
-
-            // 5. Window Blur (Lost focus / floating apps)
-            window.addEventListener('blur', () => {
-                if (currentRole === 'guru' || currentRole === 'admin') return;
-
-                triggerPrivacyMask();
-                registerViolation("Fokus layar hilang (Terdeteksi Floating App / Notifikasi)");
-            });
-
-            // 6. Prevent Leave Warning
-            window.addEventListener('beforeunload', (e) => {
-                if (currentRole !== 'siswa') return;
-                e.preventDefault();
-                e.returnValue = 'Ujian sedang berlangsung. Yakin ingin keluar?';
-            });
-        }
-
-        // Register Violations Log & Update Badge
-        function registerViolation(reason) {
-            if (currentRole === 'guru' || currentRole === 'admin') return;
-
-            violationCount++;
-            document.getElementById('violation-count').innerText = violationCount;
-
-            const time = new Date().toLocaleTimeString('id-ID');
-            const logEntry = `[${time}] ${reason}`;
-            violationLogs.unshift(logEntry);
-
-            const logList = document.getElementById('violation-log-list');
-            if (logList) {
-                logList.innerHTML = violationLogs.map(l => `<div class="p-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-rose-300 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> ${l}</div>`).join('');
-            }
-        }
-
-        function triggerPrivacyMask() {
-            if (currentRole === 'guru' || currentRole === 'admin') return;
-
-            document.getElementById('app-viewport').classList.add('blur-protection');
-            document.getElementById('privacy-mask').classList.remove('hidden');
-        }
-
-        function dismissPrivacyWarning() {
-            document.getElementById('app-viewport').classList.remove('blur-protection');
-            document.getElementById('privacy-mask').classList.add('hidden');
-        }
-
-        /* ==========================================
-           AUDIO SYNTHESIZER ALARM SYSTEM
-           ========================================== */
-        function triggerCheatAlarm(reasonText) {
-            if (currentRole === 'guru' || currentRole === 'admin') return;
-
-            document.getElementById('alarm-reason').innerText = reasonText;
-            document.getElementById('alarm-overlay').classList.remove('hidden');
-
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                if (!alarmOscillator) {
-                    alarmOscillator = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    alarmOscillator.type = 'sawtooth';
-                    alarmOscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 tone
-                    
-                    // Siren effect modulation
                     let isHigh = false;
                     setInterval(() => {
                         if (alarmOscillator && audioCtx) {
@@ -1320,11 +986,22 @@
         /* ==========================================
            QR SCANNER & PROPRIETARY DECODER
            ========================================== */
+        let isScannerStarting = false;
+
         function startQRScanner() {
-            document.getElementById('qr-scanner-fallback').classList.add('hidden');
+            const fallback = document.getElementById('qr-scanner-fallback');
+            if (fallback) fallback.classList.add('hidden');
+
             if (!qrScannerInstance) {
                 qrScannerInstance = new Html5Qrcode("qr-reader");
             }
+
+            try {
+                const state = qrScannerInstance.getState();
+                if (state === 2 || state === 3 || isScannerStarting) return;
+            } catch(e) {}
+
+            isScannerStarting = true;
 
             qrScannerInstance.start(
                 { facingMode: "environment" },
@@ -1336,17 +1013,44 @@
                 (errorMessage) => {
                     // Ignore scan loop errors
                 }
-            ).catch(err => {
+            ).then(() => {
+                isScannerStarting = false;
+            }).catch(err => {
+                isScannerStarting = false;
                 showToast("Kamera tidak dapat diakses atau diblokir!", "error");
-                document.getElementById('qr-scanner-fallback').classList.remove('hidden');
+                if (fallback) fallback.classList.remove('hidden');
             });
         }
 
         function stopQRScanner() {
-            if (qrScannerInstance) {
-                qrScannerInstance.stop().then(() => {
-                    document.getElementById('qr-scanner-fallback').classList.remove('hidden');
-                }).catch(err => console.log(err));
+            if (!qrScannerInstance) return;
+
+            const stopScannerLogic = () => {
+                try {
+                    const state = qrScannerInstance.getState();
+                    if (state === 2 || state === 3) { // 2 = SCANNING, 3 = PAUSED
+                        qrScannerInstance.stop().then(() => {
+                            const fallback = document.getElementById('qr-scanner-fallback');
+                            if (fallback) fallback.classList.remove('hidden');
+                        }).catch(err => {
+                            // Silently ignore scanner stop error if not running
+                        });
+                    } else {
+                        const fallback = document.getElementById('qr-scanner-fallback');
+                        if (fallback) fallback.classList.remove('hidden');
+                    }
+                } catch(e) {
+                    // Safe fallback if getState is not available
+                }
+            };
+
+            if (isScannerStarting) {
+                setTimeout(() => {
+                    isScannerStarting = false;
+                    stopScannerLogic();
+                }, 300);
+            } else {
+                stopScannerLogic();
             }
         }
 
@@ -1356,34 +1060,20 @@
                 return;
             }
 
-            // Proprietary QR check prefix: EXAMBRO::SMAN1LH::[Title]::[URL]
+            // Strictly validate QR Payload generated from Admin page (EXAMBRO::SMAN1LH::...)
             if (payload.startsWith("EXAMBRO::SMAN1LH::")) {
                 const parts = payload.split("::");
                 const examTitle = parts[2] || "Ujian Semester SMAN 1 Labuhan Haji";
                 const examUrl = parts[3] || "https://forms.google.com";
 
+                showToast("QR Code Valid! Membuka Mode Ujian...", "success");
                 launchExamMode(examTitle, examUrl);
             } else {
-                triggerCheatAlarm("QR Code yang dipindai BUKAN QR resmi terenkripsi dari Admin Exambro SMAN 1 Labuhan Haji!");
+                showToast("QR CODE TIDAK VALID! Hanya dapat membaca QR-Code resmi hasil generate Halaman Admin.", "error");
+                if (currentRole === 'siswa') {
+                    triggerCheatAlarm("QR Code yang dipindai BUKAN QR resmi terenkripsi dari Admin Exambro SMAN 1 Labuhan Haji!");
+                }
             }
-        }
-
-        /* ==========================================
-           URL / PRESET EXAM ENTRY
-           ========================================== */
-        function onPresetSelected(val) {
-            if (val) {
-                processQRPayload(val);
-            }
-        }
-
-        function startExamFromURLInput() {
-            const urlInput = document.getElementById('custom-exam-url').value;
-            if (!urlInput) {
-                showToast("Silakan masukkan URL server ujian terlebih dahulu!", "warning");
-                return;
-            }
-            launchExamMode("Ujian via URL Server", urlInput);
         }
 
         /* ==========================================
@@ -1432,7 +1122,7 @@
                 isExamActive = false;
                 if (examTimerInterval) clearInterval(examTimerInterval);
                 showToast("Terima kasih! Lembar jawaban Ujian Anda telah berhasil dikirim.", "success");
-                switchView('dashboard');
+                logoutRole();
             });
         }
 
@@ -1446,7 +1136,7 @@
             const formattedPayload = `EXAMBRO::SMAN1LH::${title}::${url}`;
 
             const holder = document.getElementById('qrcode-canvas-holder');
-            holder.innerHTML = ""; // Clear previous
+            holder.innerHTML = "";
 
             new QRCode(holder, {
                 text: formattedPayload,
@@ -1506,9 +1196,67 @@
                 } catch(e) {
                     console.warn("Fullscreen exit handled safely:", e);
                 }
-                switchView('dashboard');
+                logoutRole();
             } else {
                 document.getElementById('exit-error-msg').classList.remove('hidden');
+            }
+        }
+
+        // Toast & Modal Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-emerald-900/95 border-emerald-500 text-emerald-100' :
+                       type === 'error' ? 'bg-rose-900/95 border-rose-500 text-rose-100' :
+                       type === 'warning' ? 'bg-amber-900/95 border-amber-500 text-amber-100' :
+                       'bg-slate-800/95 border-sky-500 text-slate-100';
+                       
+            const icon = type === 'success' ? 'fa-check-circle' :
+                         type === 'error' ? 'fa-circle-xmark' :
+                         type === 'warning' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-lg text-xs font-semibold backdrop-blur-md transition-all duration-300 ${bg}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function showConfirm(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const msgEl = document.getElementById('confirm-modal-msg');
+            const okBtn = document.getElementById('confirm-modal-ok');
+            const cancelBtn = document.getElementById('confirm-modal-cancel');
+
+            if (!modal || !msgEl || !okBtn || !cancelBtn) return;
+
+            msgEl.innerText = message;
+            modal.classList.remove('hidden');
+
+            const cleanup = () => {
+                modal.classList.add('hidden');
+                okBtn.onclick = null;
+                cancelBtn.onclick = null;
+            };
+
+            okBtn.onclick = () => {
+                cleanup();
+                if (onConfirm) onConfirm();
+            };
+
+            cancelBtn.onclick = () => {
+                cleanup();
+            };
+        }
+
+        function autoRequestFullscreenOnce() {
+            if (!document.fullscreenElement) {
+                toggleFullscreen();
             }
         }
 
