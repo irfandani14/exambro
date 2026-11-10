@@ -658,13 +658,13 @@
     <!-- =============================================================== -->
     <script>
         /* =============================================================
-           1. APPLICATION STATE & SUPABASE DATABASE CONFIGURATION
+           1. APPLICATION STATE & DEFAULT SUPABASE DATABASE CONFIGURATION
            ============================================================= */
         const APP_PREFIX = "EXAMBRO_SECURE_PAYLOAD:";
         
-        // Supabase API Credentials
+        // Supabase API Credentials (Default Connected)
         const SUPABASE_URL = "https://vpntzraqrdcdoeaaimhc.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefSI6InZwbnR6cmFxcmRjZG9lYWFpbWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMzQ0MjQsImV4cCI6MjEwOTgxMDQyNH0.POjpc16aZEbRXjeIs6kB1vNino46ZtRLqCx7c7VFEf4";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwbnR6cmFxcmRjZG9lYWFpbWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMzQ0MjQsImV4cCI6MjEwOTgxMDQyNH0.POjpc16aZEbRXjeIs6kB1vNino46ZtRLqCx7c7VFEf4";
         
         let supabaseClient = null;
         if (window.supabase) {
@@ -796,9 +796,9 @@
             }
 
             try {
-                const { data: secData } = await supabaseClient.from('security_settings').select('*').single();
-                
-                if (secData) {
+                // Fetch Security Settings
+                const { data: secData, error: secErr } = await supabaseClient.from('security_settings').select('*').single();
+                if (!secErr && secData) {
                     dbSecurity.adminPin = secData.admin_pin || dbSecurity.adminPin;
                     dbSecurity.supervisorCode = secData.supervisor_code || dbSecurity.supervisorCode;
                     dbSecurity.studentExitCode = secData.student_exit_code || dbSecurity.studentExitCode;
@@ -847,7 +847,7 @@
                         title: item.title,
                         url: item.url,
                         token: item.token,
-                        maxViolations: item.max_violations || item.maxViolations || 2
+                        maxViolations: item.max_violations !== undefined ? item.max_violations : (item.maxViolations || 2)
                     }));
                     localStorage.setItem('exambro_exams', JSON.stringify(dbExams));
                     renderExamList();
@@ -865,7 +865,7 @@
                 if (error) throw error;
                 if (data) {
                     dbLogs = data.map(log => ({
-                        timestamp: new Date(log.created_at).toLocaleString('id-ID'),
+                        timestamp: new Date(log.created_at || Date.now()).toLocaleString('id-ID'),
                         studentName: log.student_name || 'Peserta CBT',
                         classInfo: log.class_info || '-',
                         violationType: log.violation_type,
@@ -879,7 +879,7 @@
             }
         }
 
-        /* Realtime listener untuk mendengarkan kecurangan siswa secara langsung */
+        /* Realtime listener untuk mendengarkan perubahan tabel ujian & log kecurangan */
         function setupSupabaseRealtimeSubscriptions() {
             if (!supabaseClient) return;
 
@@ -946,7 +946,7 @@
         }
 
         /* =============================================================
-           4. ADMIN DASHBOARD & EXAM MANAGEMENT
+           4. ADMIN DASHBOARD & EXAM MANAGEMENT (SUPABASE DEFAULT)
            ============================================================= */
         function verifyAdminPin() {
             const input = document.getElementById('adminPinInput').value;
@@ -981,29 +981,37 @@
             }
 
             const examPayload = {
-                title,
-                url,
-                token,
+                title: title,
+                url: url,
+                token: token,
                 max_violations: maxViolations
             };
 
+            let isSavedToSupabase = false;
             let targetId = editingId;
 
-            if (supabaseClient && isSupabaseConnected) {
+            // Simpan langsung ke Supabase
+            if (supabaseClient) {
                 try {
                     if (editingId && !editingId.startsWith('exam_')) {
                         const { error } = await supabaseClient.from('exams').update(examPayload).eq('id', editingId);
                         if (error) throw error;
+                        isSavedToSupabase = true;
                     } else {
                         const { data, error } = await supabaseClient.from('exams').insert([examPayload]).select();
                         if (error) throw error;
-                        if (data && data[0]) targetId = data[0].id;
+                        if (data && data[0]) {
+                            targetId = data[0].id;
+                            isSavedToSupabase = true;
+                        }
                     }
                 } catch (err) {
                     console.error("Gagal simpan ke Supabase:", err);
+                    alertCustom("Peringatan Supabase: " + (err.message || "Gagal menyimpan ke database server. Diperbarui secara lokal."), "warning");
                 }
             }
 
+            // Fallback & UI Instant Refresh
             const localExam = {
                 id: targetId || ('exam_' + Date.now()),
                 title,
@@ -1020,10 +1028,17 @@
             }
 
             localStorage.setItem('exambro_exams', JSON.stringify(dbExams));
-            renderExamList();
-            populateManualExamDropdown();
+
+            // Sync ulang data dari Supabase jika berhasil
+            if (isSavedToSupabase) {
+                await fetchExamsFromSupabase();
+            } else {
+                renderExamList();
+                populateManualExamDropdown();
+            }
+
             resetExamForm();
-            alertCustom("Ujian Berhasil Disimpan & QR Code Tergenerate!", "success");
+            alertCustom("Ujian Berhasil Disimpan" + (isSavedToSupabase ? " ke Supabase Database!" : "!"), "success");
 
             showQRCodeModal(localExam.id);
         }
@@ -1086,17 +1101,28 @@
 
         async function deleteExam(id) {
             if (confirm("Apakah Anda yakin ingin menghapus ujian ini?")) {
-                if (supabaseClient && isSupabaseConnected && !id.startsWith('exam_')) {
+                let isDeletedFromSupabase = false;
+                if (supabaseClient && !id.startsWith('exam_')) {
                     try {
-                        await supabaseClient.from('exams').delete().eq('id', id);
+                        const { error } = await supabaseClient.from('exams').delete().eq('id', id);
+                        if (error) throw error;
+                        isDeletedFromSupabase = true;
                     } catch (err) {
                         console.error("Gagal hapus dari Supabase:", err);
+                        alertCustom("Gagal menghapus dari Supabase: " + (err.message || err), "error");
                     }
                 }
+
                 dbExams = dbExams.filter(e => e.id !== id);
                 localStorage.setItem('exambro_exams', JSON.stringify(dbExams));
-                renderExamList();
-                populateManualExamDropdown();
+
+                if (isDeletedFromSupabase) {
+                    await fetchExamsFromSupabase();
+                } else {
+                    renderExamList();
+                    populateManualExamDropdown();
+                }
+                alertCustom("Ujian berhasil dihapus.", "info");
             }
         }
 
@@ -1431,11 +1457,11 @@
             }
         }
 
-        /* DENGAN MODIFIKASI: Proteksi Anti Copy-Paste & Shortcut HANYA Aktif Saat Ujian (isExamActive = true) */
+        /* Proteksi Anti Copy-Paste & Shortcut HANYA Aktif Saat Ujian (isExamActive = true) */
         function setupAntiCheatGlobalListeners() {
             // Disable Right-Click (Context Menu) saat Ujian Aktif
             document.addEventListener('contextmenu', (e) => {
-                if (!isExamActive) return; // Izinkan klik kanan jika bukan saat ujian aktif
+                if (!isExamActive) return;
                 e.preventDefault();
                 triggerViolation("Right Click / Menu Konteks Terdeteksi");
                 return false;
@@ -1443,7 +1469,7 @@
 
             // Disable Copy, Paste, Cut saat Ujian Aktif
             document.addEventListener('copy', (e) => {
-                if (!isExamActive) return; // Izinkan copy paste di Admin / Form awal
+                if (!isExamActive) return;
                 e.preventDefault();
                 if (e.clipboardData) e.clipboardData.setData('text/plain', '');
                 triggerViolation("Upaya Copy Tulisan/Teks Terdeteksi");
@@ -1451,14 +1477,14 @@
             });
 
             document.addEventListener('paste', (e) => {
-                if (!isExamActive) return; // Izinkan paste di Admin (seperti paste link Google Form)
+                if (!isExamActive) return;
                 e.preventDefault();
                 triggerViolation("Upaya Paste Tulisan/Teks Terdeteksi");
                 return false;
             });
 
             document.addEventListener('cut', (e) => {
-                if (!isExamActive) return; // Izinkan cut di Admin / Form awal
+                if (!isExamActive) return;
                 e.preventDefault();
                 triggerViolation("Upaya Cut Tulisan/Teks Terdeteksi");
                 return false;
@@ -1487,7 +1513,7 @@
 
             // Keydown Listener for Forbidden Shortcuts & Screenshot Combinations
             document.addEventListener('keydown', (e) => {
-                if (!isExamActive) return; // Izinkan semua shortcut jika bukan saat ujian aktif
+                if (!isExamActive) return;
 
                 const isCtrlOrMeta = e.ctrlKey || e.metaKey;
                 const key = e.key.toLowerCase();
@@ -1567,7 +1593,6 @@
                 badge.className = "font-bold text-red-400 animate-pulse";
             }
 
-            // Pengecekan status lock (Jika maxViolations >= 999 maka tidak dikunci / Tidak Dibatasi)
             const isLockedNow = selectedExam.maxViolations >= 999 ? false : (activeViolationsCount >= selectedExam.maxViolations);
 
             const currentStudentName = studentData.name || document.getElementById('studentNameInput').value.trim() || 'Peserta CBT';
