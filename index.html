@@ -715,6 +715,7 @@
         let activeViolationsCount = 0;
         let isExamActive = false;
         let isLockedOut = false;
+        let isLaunchingExam = false; // Grace flag to prevent initial entry false-positive violations
         let currentTheme = localStorage.getItem('exambro_theme') || 'dark';
 
         // Screen dimension trackers for Floating App / Split Screen detection
@@ -982,9 +983,13 @@
                             renderActivityLogs();
 
                             if (currentRole === 'admin') {
-                                // Suara AI Peringatan Berbunyi di Layar Admin Pengawas
-                                speakViolationAI(formattedLog.studentName, formattedLog.classInfo, formattedLog.violationType);
-                                alertCustom(`⚠️ ALERT VIOLASI: ${formattedLog.studentName} (${formattedLog.classInfo}) - ${formattedLog.violationType}`, "error");
+                                // Hanya bunyikan AI Voice & Alert Merah jika BUKAN log masuk biasa
+                                if (!formattedLog.violationType.startsWith('Login Ujian')) {
+                                    speakViolationAI(formattedLog.studentName, formattedLog.classInfo, formattedLog.violationType);
+                                    alertCustom(`⚠️ ALERT VIOLASI: ${formattedLog.studentName} (${formattedLog.classInfo}) - ${formattedLog.violationType}`, "error");
+                                } else {
+                                    alertCustom(`ℹ️ SISWA MASUK: ${formattedLog.studentName} (${formattedLog.classInfo}) memulai ujian`, "info");
+                                }
                             }
                         }
                     })
@@ -1465,18 +1470,22 @@
                 return;
             }
 
+            isLaunchingExam = true; // Aktifkan masa tenggang saat awal masuk ujian
             activeViolationsCount = 0;
             isExamActive = true;
             isLockedOut = false;
 
-            // Catat ukuran layar awal untuk deteksi Floating App / Split Screen
-            initialExamWidth = window.innerWidth;
-            initialExamHeight = window.innerHeight;
-
-            // Log Entry Login Siswa ke Supabase Realtime
+            // Log Entry Login Siswa ke Supabase Realtime (Status: Informasi Masuk)
             await logStudentEntryToSupabase(identity.name, identity.class, selectedExam.title);
 
             requestFullScreenMode();
+
+            // Setel ukuran awal layar setelah transisi fullscreen selesai
+            setTimeout(() => {
+                initialExamWidth = window.innerWidth;
+                initialExamHeight = window.innerHeight;
+                isLaunchingExam = false; // Selesaikan masa tenggang awal
+            }, 1500);
 
             const maxViolDisplay = selectedExam.maxViolations >= 999 ? '∞' : selectedExam.maxViolations;
 
@@ -1539,7 +1548,7 @@
         function setupAntiCheatGlobalListeners() {
             // DETEKSI FLOATING APP & SPLIT-SCREEN VIA RESIZE LISTENERS
             window.addEventListener('resize', () => {
-                if (isExamActive && !isLockedOut) {
+                if (isExamActive && !isLockedOut && !isLaunchingExam) {
                     const widthDiff = Math.abs(window.innerWidth - initialExamWidth);
                     const heightDiff = Math.abs(window.innerHeight - initialExamHeight);
 
@@ -1550,40 +1559,40 @@
                 }
             });
 
-            // Disable Right-Click saat di Portal Siswa atau Ujian Aktif
+            // Disable Right-Click di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
             document.addEventListener('contextmenu', (e) => {
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin
                 e.preventDefault();
-                if (isExamActive) triggerViolation("Right Click / Menu Konteks Terdeteksi");
+                if (isExamActive && !isLaunchingExam) triggerViolation("Right Click / Menu Konteks Terdeteksi");
                 return false;
             });
 
-            // Disable Copy saat di Portal Siswa atau Ujian Aktif
+            // Disable Copy di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
             document.addEventListener('copy', (e) => {
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin
                 e.preventDefault();
                 if (e.clipboardData) e.clipboardData.setData('text/plain', '');
-                if (isExamActive) triggerViolation("Upaya Copy Tulisan/Teks Terdeteksi");
+                if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Copy Tulisan/Teks Terdeteksi");
                 return false;
             });
 
-            // Disable Paste saat di Portal Siswa atau Ujian Aktif
+            // Disable Paste di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
             document.addEventListener('paste', (e) => {
-                if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin (seperti paste link Google Form)
+                if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin
                 e.preventDefault();
-                if (isExamActive) triggerViolation("Upaya Paste Tulisan/Teks Terdeteksi");
+                if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Paste Tulisan/Teks Terdeteksi");
                 return false;
             });
 
-            // Disable Cut saat di Portal Siswa atau Ujian Aktif
+            // Disable Cut di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
             document.addEventListener('cut', (e) => {
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin
                 e.preventDefault();
-                if (isExamActive) triggerViolation("Upaya Cut Tulisan/Teks Terdeteksi");
+                if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Cut Tulisan/Teks Terdeteksi");
                 return false;
             });
 
-            // Disable Text Selection saat di Portal Siswa atau Ujian Aktif
+            // Disable Text Selection di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
             document.addEventListener('selectstart', (e) => {
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan seleksi teks di Admin
                 e.preventDefault();
@@ -1598,7 +1607,7 @@
 
             // Keyup Listener untuk PrintScreen Key
             window.addEventListener('keyup', (e) => {
-                if (!isExamActive) return;
+                if (!isExamActive || isLaunchingExam) return;
                 if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
                     clearClipboard();
                     triggerViolation("Upaya Screenshot (PrintScreen) Terdeteksi");
@@ -1621,11 +1630,11 @@
                 if (isScreenshotCombo) {
                     e.preventDefault();
                     clearClipboard();
-                    if (isExamActive) triggerViolation("Upaya Screenshot Terdeteksi");
+                    if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Screenshot Terdeteksi");
                     return false;
                 }
 
-                if (!isExamActive) return;
+                if (!isExamActive || isLaunchingExam) return;
 
                 const forbiddenKeys = ['F12', 'PrintScreen'];
                 const forbiddenCombos = ['c', 'v', 'x', 'u', 's', 'p', 'a', 'i', 'j'];
@@ -1640,13 +1649,13 @@
 
             // Focus & Visibility Shift Listeners
             window.addEventListener('blur', () => {
-                if (isExamActive && !isLockedOut) {
+                if (isExamActive && !isLockedOut && !isLaunchingExam) {
                     triggerViolation("Berpindah Tab / Membuka Aplikasi Lain / Mode Floating");
                 }
             });
 
             document.addEventListener('visibilitychange', () => {
-                if (isExamActive && document.hidden && !isLockedOut) {
+                if (isExamActive && document.hidden && !isLockedOut && !isLaunchingExam) {
                     triggerViolation("Layar disembunyikan / Tab switched");
                 }
             });
@@ -1661,7 +1670,7 @@
             const isFS = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
             const indicator = document.getElementById('fullscreenIndicator');
 
-            if (!isFS && isExamActive && !isLockedOut) {
+            if (!isFS && isExamActive && !isLockedOut && !isLaunchingExam) {
                 if (indicator) {
                     indicator.className = "bg-red-500/10 border border-red-500/30 px-3 py-1 rounded-lg text-xs text-red-400 font-semibold flex items-center gap-1.5";
                     indicator.innerHTML = `<i class="fa-solid fa-compress"></i> Fullscreen Exit!`;
@@ -1677,7 +1686,7 @@
            9. VIOLATION HANDLING, AI VOICE & SUPABASE LOGGING
            ============================================================= */
         async function triggerViolation(type) {
-            if (!isExamActive || isLockedOut) return;
+            if (!isExamActive || isLockedOut || isLaunchingExam) return;
 
             activeViolationsCount++;
             
