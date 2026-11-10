@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- Supabase JS Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Custom Tailwind Configuration for Custom Colors & Fonts -->
+    <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
             theme: {
@@ -40,12 +40,26 @@
         }
     </script>
     <style>
-        /* Prevents text selection across the browser */
+        /* Prevents text selection across the browser during active exam */
         .user-select-none {
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+
+        /* Prevent image dragging and pointer events for screenshot tools */
+        img {
+            -webkit-user-drag: none !important;
+            user-drag: none !important;
+            pointer-events: none !important;
+        }
+
+        /* Anti-Print / Anti Screenshot Save to PDF */
+        @media print {
+            body {
+                display: none !important;
+            }
         }
 
         /* Watermarking canvas animation background */
@@ -70,6 +84,44 @@
         .pulse-badge {
             animation: pulse-ring 2s infinite ease-in-out;
         }
+
+        /* LIGHT MODE OVERRIDES */
+        body.light-mode {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        body.light-mode header, 
+        body.light-mode footer,
+        body.light-mode .bg-slate-950,
+        body.light-mode .bg-slate-900 {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #e2e8f0 !important;
+        }
+        body.light-mode .text-slate-400,
+        body.light-mode .text-slate-300 {
+            color: #475569 !important;
+        }
+        body.light-mode .text-white {
+            color: #0f172a !important;
+        }
+        body.light-mode .bg-slate-800 {
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-mode .bg-slate-900\/50 {
+            background-color: #f1f5f9 !important;
+        }
+        body.light-mode input,
+        body.light-mode select {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+        body.light-mode .bg-slate-950\/80 {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen font-sans antialiased user-select-none flex flex-col justify-between">
@@ -78,7 +130,7 @@
     <header class="bg-slate-950 border-b border-slate-800 shadow-xl sticky top-0 z-30">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
             <!-- School Brand / Logo -->
-            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('siswa')">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchRole('siswa')">
                 <div class="w-12 h-12 bg-gradient-to-tr from-amber-500 via-blue-600 to-indigo-700 rounded-full p-0.5 shadow-lg flex items-center justify-center">
                     <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center">
                         <i class="fa-solid fa-graduation-cap text-amber-400 text-xl"></i>
@@ -95,12 +147,18 @@
                 </div>
             </div>
 
-            <!-- Navigation Actions & Live Clock -->
+            <!-- Navigation Actions, Theme Toggle & Live Clock -->
             <div class="flex items-center gap-3">
                 <div class="hidden md:flex flex-col text-right pr-4 border-r border-slate-800">
                     <span id="liveClock" class="text-sm font-mono font-bold text-amber-400">00:00:00 WIB</span>
                     <span id="liveDate" class="text-xs text-slate-400">Senin, 1 Jan 2026</span>
                 </div>
+
+                <!-- Theme Switcher Button -->
+                <button onclick="toggleTheme()" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all duration-200 bg-slate-900 border border-slate-800 text-slate-300 hover:text-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-sun theme-icon text-amber-400"></i>
+                    <span class="theme-text hidden sm:inline">Mode Terang</span>
+                </button>
 
                 <!-- Supabase Realtime Database Status Badge -->
                 <div id="supabaseStatusBadge" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-slate-900 border border-slate-800 text-slate-400">
@@ -124,44 +182,71 @@
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
 
         <!-- =============================================================== -->
-        <!-- VIEW 1: PORTAL SISWA (LOGIN & SCANNER) -->
+        <!-- VIEW 1: PORTAL SISWA (LOGIN IDENTITAS & SCANNER) -->
         <!-- =============================================================== -->
         <section id="viewSiswa" class="space-y-6">
             
-            <!-- Hero Banner & School Emblem -->
+            <!-- Hero Banner -->
             <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 rounded-2xl p-6 border border-slate-800 shadow-2xl relative overflow-hidden">
                 <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
                     <i class="fa-solid fa-shield-halved text-9xl text-amber-400"></i>
                 </div>
-                <div class="max-w-2xl">
-                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3">
-                    <i class="fa-solid fa-shield-cat"></i> Keamanan Anti-Nyontek Aktif
-                </span>
-                <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
-                    Selamat Datang di Portal Ujian Digital
-                </h2>
-                <p class="text-slate-400 text-sm mt-1">
-                    SMA Negeri 1 Labuhan Haji. Silahkan lakukan pemindaian QR Code ujian yang disediakan oleh pengawas ruangan untuk langsung memulai ujian.
-                </p>
+                <div class="max-w-3xl">
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-3">
+                        <i class="fa-solid fa-shield-cat"></i> Keamanan Anti-Nyontek & Anti-Screenshot Aktif
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                        Selamat Datang di Portal Ujian Digital
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-1">
+                        SMA Negeri 1 Labuhan Haji. Silahkan masukkan Identitas Siswa (Nama & Kelas) terlebih dahulu, lalu lakukan pemindaian QR Code ujian yang disediakan pengawas.
+                    </p>
+                </div>
             </div>
-        </div>
 
-        <div class="max-w-3xl mx-auto">
-            
-            <!-- QR Scanner & Access Control -->
-            <div class="bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
-                <div>
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-qrcode text-amber-400"></i> Scan Akses QR-Code Ujian
+            <div class="max-w-3xl mx-auto space-y-6">
+                
+                <!-- STEP 1: FORM INPUT NAMA & KELAS SISWA -->
+                <div class="bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-pen text-amber-400"></i> 1. Masukkan Identitas Peserta Ujian
                         </h3>
-                        <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full font-mono">
-                            Security Standard EXAMBRO
+                        <span class="text-[11px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-mono">
+                            Realtime Supabase Sync
                         </span>
                     </div>
 
-                    <!-- Scan Options Tabs -->
-                    <div class="flex gap-2 mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
+                                Nama Lengkap Siswa <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="studentNameInput" oninput="saveStudentInputState()" placeholder="Contoh: Muhammad Rian" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 uppercase mb-1.5">
+                                Kelas / Rombel <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="studentClassInput" oninput="saveStudentInputState()" placeholder="Contoh: XII IPA 1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: QR SCANNER & ACCESS CONTROL -->
+                <div class="bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-qrcode text-amber-400"></i> 2. Scan Akses QR-Code Ujian
+                            </h3>
+                            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full font-mono">
+                                Anti Copy-Paste & Screenshot
+                            </span>
+                        </div>
+
+                        <!-- Scan Options Tabs -->
+                        <div class="flex gap-2 mb-4">
                             <button onclick="setScanMode('camera')" id="btnTabCam" class="flex-1 py-2 text-xs font-bold rounded-lg border border-amber-500 bg-amber-500/10 text-amber-400">
                                 <i class="fa-solid fa-camera mr-1"></i> Gunakan Kamera
                             </button>
@@ -196,7 +281,7 @@
                         <div id="scanFileArea" class="hidden space-y-3">
                             <div class="bg-slate-900 border-2 border-dashed border-slate-700 rounded-2xl p-6 text-center space-y-3">
                                 <i class="fa-solid fa-cloud-arrow-up text-4xl text-amber-400"></i>
-                                <p class="text-xs text-slate-300">Pilih berkas foto / Screenshot QR Code Ujian yang diberikan Pengawas</p>
+                                <p class="text-xs text-slate-300">Pilih berkas foto QR Code Ujian yang diberikan Pengawas</p>
                                 <input type="file" id="qrFileInput" accept="image/*" class="hidden" onchange="handleQRFileUpload(event)">
                                 <button onclick="document.getElementById('qrFileInput').click()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-xs transition inline-flex items-center gap-2">
                                     <i class="fa-solid fa-folder-open"></i> Cari Gambar QR
@@ -230,7 +315,7 @@
                             <i class="fa-solid fa-circle-check text-3xl text-emerald-400"></i>
                         </div>
                         <button onclick="launchExamSession()" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black py-3 rounded-xl text-sm tracking-wide shadow-lg transition transform hover:-translate-y-0.5">
-                            <i class="fa-solid fa-rocket mr-2"></i> MULAI UJIAN SEKARANG (MODE ANTI-CURANG)
+                            <i class="fa-solid fa-rocket mr-2"></i> MULAI UJIAN SEKARANG (MODE ANTI-CURANG & ANTI-SCREENSHOT)
                         </button>
                     </div>
 
@@ -244,7 +329,7 @@
         <!-- =============================================================== -->
         <section id="viewAdmin" class="hidden space-y-6">
             
-            <!-- Admin Security PIN Modal Gate (If locked) -->
+            <!-- Admin PIN Gate -->
             <div id="adminPinGate" class="bg-slate-950 border border-slate-800 rounded-2xl p-8 max-w-md mx-auto text-center space-y-4 shadow-2xl">
                 <div class="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto text-amber-400 text-2xl">
                     <i class="fa-solid fa-lock"></i>
@@ -257,7 +342,7 @@
                 </button>
             </div>
 
-            <!-- Main Admin Dashboard Content (Hidden by Default until PIN verified) -->
+            <!-- Main Admin Dashboard Content -->
             <div id="adminMainContent" class="hidden space-y-6">
                 
                 <!-- Admin Header Toolbar -->
@@ -266,7 +351,7 @@
                         <h2 class="text-xl font-bold text-white flex items-center gap-2">
                             <i class="fa-solid fa-sliders text-amber-400"></i> Panel Manajemen Ujian & Keamanan Realtime
                         </h2>
-                        <p class="text-xs text-slate-400">Kelola Google Form, Token Ujian, QR-Code, serta Pantau Aktivitas Pelanggaran Siswa.</p>
+                        <p class="text-xs text-slate-400">Kelola Ujian, Token, QR-Code, serta Pantau Aktivitas Log Violasi Siswa di Supabase.</p>
                     </div>
 
                     <!-- Security Master Codes Widget -->
@@ -289,7 +374,7 @@
                 <!-- Create & List Exam Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
-                    <!-- Left: Form Tambah Ujian Baru -->
+                    <!-- Form Tambah Ujian Baru -->
                     <div class="lg:col-span-5 bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
                         <h3 id="formExamTitle" class="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
                             <i class="fa-solid fa-plus-circle text-amber-400"></i> Tambah Ujian Baru
@@ -321,8 +406,11 @@
                                 <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Batas Toleransi Violasi</label>
                                 <select id="inputMaxViolations" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
                                     <option value="1">1x Violasi (Langsung Lock)</option>
-                                    <option value="2" selected>2x Violasi (Toleransi 1x)</option>
+                                    <option value="2" selected>2x Violasi</option>
                                     <option value="3">3x Violasi</option>
+                                    <option value="4">4x Violasi</option>
+                                    <option value="5">5x Violasi</option>
+                                    <option value="999">Tidak Dibatasi</option>
                                 </select>
                             </div>
                         </div>
@@ -337,7 +425,7 @@
                         </div>
                     </div>
 
-                    <!-- Right: Daftar Ujian Aktif -->
+                    <!-- Daftar Ujian Aktif -->
                     <div class="lg:col-span-7 bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                             <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -353,14 +441,14 @@
 
                 </div>
 
-                <!-- Log Aktivitas Realtime Table -->
+                <!-- Log Aktivitas Violasi & Entry Realtime Table -->
                 <div class="bg-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl space-y-4">
                     <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
                         <div>
                             <h3 class="text-base font-bold text-white flex items-center gap-2">
-                                <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Log Aktivitas Violasi Siswa (Real-Time Monitor)
+                                <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Log Masuk & Violasi Siswa (Terhubung Realtime Supabase)
                             </h3>
-                            <p class="text-xs text-slate-400">Catatan otomatis perpindahan tab, keluar full-screen, atau kecurangan selama ujian berlangsung.</p>
+                            <p class="text-xs text-slate-400">Pantau secara realtime nama siswa & kelas yang melakukan login maupun violasi (copy-paste, screenshot, pindah tab).</p>
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="clearActivityLogs()" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
@@ -379,14 +467,14 @@
                                 <tr>
                                     <th class="p-3 rounded-l-lg">Waktu Kejadian</th>
                                     <th class="p-3">Nama Siswa</th>
-                                    <th class="p-3">Kelas / NISN</th>
-                                    <th class="p-3">Jenis Pelanggaran</th>
-                                    <th class="p-3 text-center">Status Lock</th>
+                                    <th class="p-3">Kelas / Rombel</th>
+                                    <th class="p-3">Aktivitas / Pelanggaran</th>
+                                    <th class="p-3 text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody id="logsTableBody" class="divide-y divide-slate-800">
                                 <tr>
-                                    <td colspan="5" class="p-6 text-center text-slate-500 italic">Belum ada catatan pelanggaran tercatat. Sistem ujian aman.</td>
+                                    <td colspan="5" class="p-6 text-center text-slate-500 italic">Belum ada catatan aktivitas tercatat. Sistem ujian aman.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -400,15 +488,15 @@
 
     <!-- FOOTER BRANDING -->
     <footer class="bg-slate-950 border-t border-slate-800 py-3 px-4 text-center text-xs text-slate-500">
-        <p>© 2026 EXAMBRO CBT System - SMA Negeri 1 Labuhan Haji. Terproteksi Sistem Anti-Nyontek Layar Penuh.</p>
+        <p>© 2026 EXAMBRO CBT System - SMA Negeri 1 Labuhan Haji | <strong class="text-amber-400">Dikembangkan oleh Irfan Dani, S.Pd</strong></p>
     </footer>
 
     <!-- =============================================================== -->
-    <!-- OVERLAY 1: ACTIVE EXAM anti-cheat MONITOR SCREEN (FULLSCREEN VIEW) -->
+    <!-- OVERLAY 1: ACTIVE EXAM MONITOR SCREEN (FULLSCREEN VIEW) -->
     <!-- =============================================================== -->
     <div id="examActiveContainer" class="fixed inset-0 bg-slate-950 z-50 hidden flex-col">
         
-        <!-- Dynamic Watermark Text Container -->
+        <!-- Dynamic Watermark Text Overlay -->
         <div id="watermarkOverlay" class="watermark-bg select-none">
             <div id="watermarkText" class="text-slate-400 font-mono font-bold text-xl transform -rotate-12 whitespace-nowrap opacity-20">
                 SMA NEGERI 1 LABUHAN HAJI - EXAMBRO ANTI-CHEAT MONITORING
@@ -421,20 +509,31 @@
                 <span class="w-3 h-3 rounded-full bg-emerald-500 pulse-badge"></span>
                 <div>
                     <h3 id="activeExamHeaderTitle" class="text-sm font-bold text-white leading-tight">Ujian Akhir Semester</h3>
-                    <p id="activeStudentHeaderInfo" class="text-xs text-slate-400">Siswa: <span class="text-amber-400 font-bold">Muhammad Rian</span> (XII IPA 1)</p>
+                    <p id="activeStudentHeaderInfo" class="text-xs text-slate-400">Siswa: <span id="headerStudentName" class="text-amber-400 font-bold">-</span> (<span id="headerStudentClass" class="text-slate-300">-</span>)</p>
                 </div>
             </div>
 
-            <!-- Anti Cheat Status Badges -->
-            <div class="flex items-center gap-3">
+            <!-- Anti Cheat Status Badges & Action Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
                 <div class="bg-slate-950 border border-slate-800 px-3 py-1 rounded-lg text-xs text-slate-300 font-mono">
                     Violasi: <span id="studentViolationBadge" class="font-bold text-emerald-400">0 / 2</span>
                 </div>
                 <div id="fullscreenIndicator" class="bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-lg text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
-                    <i class="fa-solid fa-expand"></i> Fullscreen Active
+                    <i class="fa-solid fa-expand"></i> Fullscreen
                 </div>
+
+                <!-- Tombol Reload / Refresh Halaman Ujian -->
+                <button onclick="reloadExamIframe()" title="Refresh / Reload Halaman Ujian" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> Refresh
+                </button>
+
+                <!-- Tombol Ganti Tema Layar Ujian -->
+                <button onclick="toggleTheme()" title="Ganti Mode Gelap / Terang" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold transition">
+                    <i class="fa-solid fa-sun theme-icon text-amber-400"></i>
+                </button>
+
                 <button onclick="promptExitExamModal()" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-door-open"></i> Selesai / Keluar
+                    <i class="fa-solid fa-door-open"></i> Selesai
                 </button>
             </div>
         </header>
@@ -471,7 +570,7 @@
     </div>
 
     <!-- =============================================================== -->
-    <!-- MODAL 2: VIOLATION LOCK SCREEN (Siswa Dikunci Otomatis) -->
+    <!-- MODAL 2: VIOLATION LOCK SCREEN -->
     <!-- =============================================================== -->
     <div id="lockoutModal" class="fixed inset-0 bg-red-950/95 backdrop-blur-md z-[100] hidden flex flex-col items-center justify-center p-6 text-center space-y-6">
         <div class="w-20 h-20 bg-red-600/20 border-2 border-red-500 rounded-full flex items-center justify-center text-red-500 text-4xl animate-bounce">
@@ -481,7 +580,7 @@
         <div class="max-w-md space-y-2">
             <h2 class="text-2xl font-black text-white uppercase tracking-wider">UJIAN DIKUNCI OLEH SISTEM</h2>
             <p class="text-sm text-red-200">
-                Terdeteksi pelanggaran berulang (Keluar Layar Penuh / Berpindah Tab / Membuka Aplikasi Lain).
+                Terdeteksi pelanggaran berulang (Copy-Paste / Screenshot / Keluar Layar Penuh / Pindah Tab).
             </p>
         </div>
 
@@ -565,7 +664,7 @@
         
         // Supabase API Credentials
         const SUPABASE_URL = "https://vpntzraqrdcdoeaaimhc.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwbnR6cmFxcmRjZG9lYWFpbWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMzQ0MjQsImV4cCI6MjEwOTgxMDQyNH0.POjpc16aZEbRXjeIs6kB1vNino46ZtRLqCx7c7VFEf4";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRefSI6InZwbnR6cmFxcmRjZG9lYWFpbWhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyMzQ0MjQsImV4cCI6MjEwOTgxMDQyNH0.POjpc16aZEbRXjeIs6kB1vNino46ZtRLqCx7c7VFEf4";
         
         let supabaseClient = null;
         if (window.supabase) {
@@ -600,15 +699,20 @@
         let currentScanMode = 'camera';
         let html5QrcodeScanner = null;
         let selectedExam = null;
-        let studentData = { name: 'Peserta CBT', class: 'Ruang Ujian', nisn: '-' };
         let activeViolationsCount = 0;
         let isExamActive = false;
         let isLockedOut = false;
+        let currentTheme = localStorage.getItem('exambro_theme') || 'dark';
+
+        // Persistent Student Identity
+        let studentData = JSON.parse(localStorage.getItem('exambro_student_identity')) || { name: '', class: '' };
 
         /* =============================================================
-           2. INITIALIZATION & SUPABASE SYNC LOGIC
+           2. INITIALIZATION & THEME LOGIC
            ============================================================= */
         window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadStudentInputState();
             initLiveClock();
             renderExamList();
             renderActivityLogs();
@@ -618,6 +722,60 @@
             setupAntiCheatGlobalListeners();
             initSupabaseSync();
         });
+
+        function initTheme() {
+            applyTheme(currentTheme);
+        }
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('exambro_theme', theme);
+            const body = document.body;
+            const themeIcons = document.querySelectorAll('.theme-icon');
+            const themeTexts = document.querySelectorAll('.theme-text');
+
+            if (theme === 'light') {
+                body.classList.add('light-mode');
+                themeIcons.forEach(icon => icon.className = 'fa-solid fa-moon theme-icon text-indigo-400');
+                themeTexts.forEach(text => text.innerText = 'Mode Gelap');
+            } else {
+                body.classList.remove('light-mode');
+                themeIcons.forEach(icon => icon.className = 'fa-solid fa-sun theme-icon text-amber-400');
+                themeTexts.forEach(text => text.innerText = 'Mode Terang');
+            }
+        }
+
+        function toggleTheme() {
+            applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        function saveStudentInputState() {
+            const name = document.getElementById('studentNameInput').value.trim();
+            const studentClass = document.getElementById('studentClassInput').value.trim();
+            studentData = { name, class: studentClass };
+            localStorage.setItem('exambro_student_identity', JSON.stringify(studentData));
+        }
+
+        function loadStudentInputState() {
+            if (studentData.name) {
+                document.getElementById('studentNameInput').value = studentData.name;
+            }
+            if (studentData.class) {
+                document.getElementById('studentClassInput').value = studentData.class;
+            }
+        }
+
+        function reloadExamIframe() {
+            const iframe = document.getElementById('examIframe');
+            if (iframe && iframe.src) {
+                const currentSrc = iframe.src;
+                iframe.src = '';
+                setTimeout(() => {
+                    iframe.src = currentSrc;
+                }, 100);
+                alertCustom("Memuat ulang halaman ujian...", "info");
+            }
+        }
 
         function initLiveClock() {
             const updateClock = () => {
@@ -638,8 +796,7 @@
             }
 
             try {
-                // Test connectivity by querying security settings
-                const { data: secData, error: secErr } = await supabaseClient.from('security_settings').select('*').single();
+                const { data: secData } = await supabaseClient.from('security_settings').select('*').single();
                 
                 if (secData) {
                     dbSecurity.adminPin = secData.admin_pin || dbSecurity.adminPin;
@@ -651,11 +808,8 @@
 
                 updateDatabaseStatus(true, "Supabase Connected");
 
-                // Fetch data from Supabase
                 await fetchExamsFromSupabase();
                 await fetchLogsFromSupabase();
-
-                // Listen to Realtime Postgres Changes
                 setupSupabaseRealtimeSubscriptions();
 
             } catch (err) {
@@ -707,13 +861,13 @@
         async function fetchLogsFromSupabase() {
             if (!supabaseClient) return;
             try {
-                const { data, error } = await supabaseClient.from('violation_logs').select('*').order('created_at', { ascending: false }).limit(50);
+                const { data, error } = await supabaseClient.from('violation_logs').select('*').order('created_at', { ascending: false }).limit(100);
                 if (error) throw error;
                 if (data) {
                     dbLogs = data.map(log => ({
                         timestamp: new Date(log.created_at).toLocaleString('id-ID'),
                         studentName: log.student_name || 'Peserta CBT',
-                        classInfo: log.class_info || 'Ruang Ujian',
+                        classInfo: log.class_info || '-',
                         violationType: log.violation_type,
                         isLocked: log.is_locked
                     }));
@@ -725,6 +879,7 @@
             }
         }
 
+        /* Realtime listener untuk mendengarkan kecurangan siswa secara langsung */
         function setupSupabaseRealtimeSubscriptions() {
             if (!supabaseClient) return;
 
@@ -741,8 +896,26 @@
                         updateSecurityDisplay();
                     }
                 })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'violation_logs' }, () => {
-                    fetchLogsFromSupabase();
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'violation_logs' }, payload => {
+                    if (payload.new) {
+                        const newLog = payload.new;
+                        const formattedLog = {
+                            timestamp: new Date(newLog.created_at || Date.now()).toLocaleString('id-ID'),
+                            studentName: newLog.student_name || 'Peserta CBT',
+                            classInfo: newLog.class_info || '-',
+                            violationType: newLog.violation_type,
+                            isLocked: newLog.is_locked
+                        };
+                        
+                        dbLogs.unshift(formattedLog);
+                        localStorage.setItem('exambro_logs', JSON.stringify(dbLogs));
+                        renderActivityLogs();
+
+                        if (currentRole === 'admin') {
+                            playWarningSound();
+                            alertCustom(`⚠️ ALERT VIOLASI: ${formattedLog.studentName} (${formattedLog.classInfo}) - ${formattedLog.violationType}`, "error");
+                        }
+                    }
                 })
                 .subscribe();
         }
@@ -1017,8 +1190,23 @@
         }
 
         /* =============================================================
-           7. STUDENT PORTAL & QR SCANNING LOGIC
+           7. STUDENT PORTAL & IDENTITAS SISWA VALIDATION
            ============================================================= */
+        function validateStudentIdentity() {
+            const name = document.getElementById('studentNameInput').value.trim();
+            const studentClass = document.getElementById('studentClassInput').value.trim();
+
+            if (!name || !studentClass) {
+                alertCustom("Harap isi Nama Lengkap dan Kelas terlebih dahulu!", "warning");
+                document.getElementById('studentNameInput').focus();
+                return null;
+            }
+
+            studentData = { name, class: studentClass };
+            localStorage.setItem('exambro_student_identity', JSON.stringify(studentData));
+            return studentData;
+        }
+
         function setScanMode(mode) {
             currentScanMode = mode;
             const btnCam = document.getElementById('btnTabCam');
@@ -1047,6 +1235,8 @@
         }
 
         function startCameraScanner() {
+            if (!validateStudentIdentity()) return;
+
             document.getElementById('scanPlaceholder').classList.add('hidden');
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.clear();
@@ -1077,10 +1267,12 @@
         }
 
         function onScanFailure(error) {
-            // Quiet failure check
+            // Quiet failure
         }
 
         function handleQRFileUpload(event) {
+            if (!validateStudentIdentity()) return;
+
             const file = event.target.files[0];
             if (!file) return;
 
@@ -1104,6 +1296,8 @@
         }
 
         function validateManualToken() {
+            if (!validateStudentIdentity()) return;
+
             const examId = document.getElementById('manualExamSelect').value;
             const inputToken = document.getElementById('manualTokenInput').value.trim().toUpperCase();
 
@@ -1154,32 +1348,68 @@
         }
 
         /* =============================================================
-           8. ANTI-CHEAT ENGINE & FULLSCREEN LAUNCH
+           8. ANTI-CHEAT & ANTI-SCREENSHOT ENGINE
            ============================================================= */
-        function launchExamSession() {
+        async function launchExamSession() {
+            const identity = validateStudentIdentity();
+            if (!identity) return;
+
             if (!selectedExam) {
                 alertCustom("Scan QR Ujian terlebih dahulu!", "warning");
                 return;
             }
 
-            studentData = { name: 'Peserta CBT', class: 'Ruang Ujian', nisn: '-' };
             activeViolationsCount = 0;
             isExamActive = true;
             isLockedOut = false;
 
+            // Log Entry Login Siswa ke Supabase Realtime
+            await logStudentEntryToSupabase(identity.name, identity.class, selectedExam.title);
+
             requestFullScreenMode();
 
-            document.getElementById('activeExamHeaderTitle').innerText = selectedExam.title;
-            document.getElementById('activeStudentHeaderInfo').innerHTML = `Status: <span class="text-amber-400 font-bold">Peserta CBT Active</span>`;
-            document.getElementById('studentViolationBadge').innerText = `${activeViolationsCount} / ${selectedExam.maxViolations}`;
+            const maxViolDisplay = selectedExam.maxViolations >= 999 ? '∞' : selectedExam.maxViolations;
 
-            document.getElementById('watermarkText').innerText = `SMA NEGERI 1 LABUHAN HAJI • EXAMBRO ANTI-CHEAT MONITORING`;
+            document.getElementById('activeExamHeaderTitle').innerText = selectedExam.title;
+            document.getElementById('headerStudentName').innerText = identity.name;
+            document.getElementById('headerStudentClass').innerText = identity.class;
+            document.getElementById('studentViolationBadge').innerText = `${activeViolationsCount} / ${maxViolDisplay}`;
+
+            document.getElementById('watermarkText').innerText = `${identity.name} (${identity.class}) • SMAN 1 LABUHAN HAJI EXAMBRO`;
 
             const iframe = document.getElementById('examIframe');
             iframe.src = selectedExam.url;
 
             document.getElementById('examActiveContainer').classList.remove('hidden');
             document.getElementById('examActiveContainer').classList.add('flex');
+        }
+
+        async function logStudentEntryToSupabase(name, className, examTitle) {
+            const logEntry = {
+                timestamp: new Date().toLocaleString('id-ID'),
+                studentName: name,
+                classInfo: className,
+                violationType: `Login Ujian: ${examTitle}`,
+                isLocked: false
+            };
+
+            if (supabaseClient && isSupabaseConnected) {
+                try {
+                    await supabaseClient.from('violation_logs').insert([{
+                        exam_id: selectedExam && !selectedExam.id.startsWith('exam_') ? selectedExam.id : null,
+                        student_name: name,
+                        class_info: className,
+                        violation_type: `Login Ujian: ${examTitle}`,
+                        is_locked: false
+                    }]);
+                } catch (err) {
+                    console.error("Gagal mencatat log login ke Supabase:", err);
+                }
+            } else {
+                dbLogs.unshift(logEntry);
+                localStorage.setItem('exambro_logs', JSON.stringify(dbLogs));
+                renderActivityLogs();
+            }
         }
 
         function requestFullScreenMode() {
@@ -1195,27 +1425,98 @@
             }
         }
 
+        function clearClipboard() {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText('').catch(() => {});
+            }
+        }
+
+        /* DENGAN MODIFIKASI: Proteksi Anti Copy-Paste & Shortcut HANYA Aktif Saat Ujian (isExamActive = true) */
         function setupAntiCheatGlobalListeners() {
+            // Disable Right-Click (Context Menu) saat Ujian Aktif
             document.addEventListener('contextmenu', (e) => {
+                if (!isExamActive) return; // Izinkan klik kanan jika bukan saat ujian aktif
+                e.preventDefault();
+                triggerViolation("Right Click / Menu Konteks Terdeteksi");
+                return false;
+            });
+
+            // Disable Copy, Paste, Cut saat Ujian Aktif
+            document.addEventListener('copy', (e) => {
+                if (!isExamActive) return; // Izinkan copy paste di Admin / Form awal
+                e.preventDefault();
+                if (e.clipboardData) e.clipboardData.setData('text/plain', '');
+                triggerViolation("Upaya Copy Tulisan/Teks Terdeteksi");
+                return false;
+            });
+
+            document.addEventListener('paste', (e) => {
+                if (!isExamActive) return; // Izinkan paste di Admin (seperti paste link Google Form)
+                e.preventDefault();
+                triggerViolation("Upaya Paste Tulisan/Teks Terdeteksi");
+                return false;
+            });
+
+            document.addEventListener('cut', (e) => {
+                if (!isExamActive) return; // Izinkan cut di Admin / Form awal
+                e.preventDefault();
+                triggerViolation("Upaya Cut Tulisan/Teks Terdeteksi");
+                return false;
+            });
+
+            // Disable Text Selection & Dragging saat Ujian Aktif
+            document.addEventListener('selectstart', (e) => {
+                if (isExamActive) e.preventDefault();
+            });
+
+            document.addEventListener('dragstart', (e) => {
                 if (isExamActive) {
                     e.preventDefault();
-                    triggerViolation("Right Click / Menu Konteks Terdeteksi");
+                    return false;
                 }
             });
 
-            document.addEventListener('keydown', (e) => {
+            // Keyup Listener for PrintScreen Key
+            window.addEventListener('keyup', (e) => {
                 if (!isExamActive) return;
+                if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
+                    clearClipboard();
+                    triggerViolation("Upaya Screenshot (PrintScreen) Terdeteksi");
+                }
+            });
+
+            // Keydown Listener for Forbidden Shortcuts & Screenshot Combinations
+            document.addEventListener('keydown', (e) => {
+                if (!isExamActive) return; // Izinkan semua shortcut jika bukan saat ujian aktif
+
+                const isCtrlOrMeta = e.ctrlKey || e.metaKey;
+                const key = e.key.toLowerCase();
+
+                // Screenshot key detection (PrtScn, Win+Shift+S, Cmd+Shift+3/4/5)
+                const isScreenshotCombo = 
+                    e.key === 'PrintScreen' || 
+                    (e.shiftKey && (e.metaKey || e.ctrlKey) && key === 's') || 
+                    (e.metaKey && e.shiftKey && ['3', '4', '5'].includes(key));
+
+                if (isScreenshotCombo) {
+                    e.preventDefault();
+                    clearClipboard();
+                    triggerViolation("Upaya Screenshot Terdeteksi");
+                    return false;
+                }
 
                 const forbiddenKeys = ['F12', 'PrintScreen'];
-                const isCtrlOrMeta = e.ctrlKey || e.metaKey;
-                
-                if (forbiddenKeys.includes(e.key) || 
-                    (isCtrlOrMeta && ['c', 'v', 'u', 's', 'p', 'a', 'i', 'j'].includes(e.key.toLowerCase()))) {
+                const forbiddenCombos = ['c', 'v', 'x', 'u', 's', 'p', 'a', 'i', 'j'];
+
+                if (forbiddenKeys.includes(e.key) || (isCtrlOrMeta && forbiddenCombos.includes(key))) {
                     e.preventDefault();
+                    clearClipboard();
                     triggerViolation(`Shortcut Terlarang Pressed: (${e.key})`);
+                    return false;
                 }
             });
 
+            // Focus & Visibility Shift Listeners
             window.addEventListener('blur', () => {
                 if (isExamActive && !isLockedOut) {
                     triggerViolation("Berpindah Tab / Membuka Aplikasi Lain");
@@ -1251,7 +1552,7 @@
         }
 
         /* =============================================================
-           9. VIOLATION HANDLING & REALTIME LOGOUT
+           9. VIOLATION HANDLING & SUPABASE LOGGING
            ============================================================= */
         async function triggerViolation(type) {
             if (!isExamActive || isLockedOut) return;
@@ -1259,50 +1560,61 @@
             activeViolationsCount++;
             playWarningSound();
 
+            const maxViolDisplay = selectedExam.maxViolations >= 999 ? '∞' : selectedExam.maxViolations;
             const badge = document.getElementById('studentViolationBadge');
             if (badge) {
-                badge.innerText = `${activeViolationsCount} / ${selectedExam.maxViolations}`;
+                badge.innerText = `${activeViolationsCount} / ${maxViolDisplay}`;
                 badge.className = "font-bold text-red-400 animate-pulse";
             }
 
-            const isLockedNow = activeViolationsCount >= selectedExam.maxViolations;
+            // Pengecekan status lock (Jika maxViolations >= 999 maka tidak dikunci / Tidak Dibatasi)
+            const isLockedNow = selectedExam.maxViolations >= 999 ? false : (activeViolationsCount >= selectedExam.maxViolations);
+
+            const currentStudentName = studentData.name || document.getElementById('studentNameInput').value.trim() || 'Peserta CBT';
+            const currentStudentClass = studentData.class || document.getElementById('studentClassInput').value.trim() || '-';
 
             const logEntry = {
                 timestamp: new Date().toLocaleString('id-ID'),
-                studentName: studentData.name,
-                classInfo: `${studentData.class} (${studentData.nisn})`,
+                studentName: currentStudentName,
+                classInfo: currentStudentClass,
                 violationType: type,
                 isLocked: isLockedNow
             };
-
-            dbLogs.unshift(logEntry);
-            localStorage.setItem('exambro_logs', JSON.stringify(dbLogs));
-            renderActivityLogs();
 
             if (supabaseClient && isSupabaseConnected) {
                 try {
                     await supabaseClient.from('violation_logs').insert([{
                         exam_id: selectedExam && !selectedExam.id.startsWith('exam_') ? selectedExam.id : null,
-                        student_name: studentData.name,
-                        class_info: studentData.class,
+                        student_name: currentStudentName,
+                        class_info: currentStudentClass,
                         violation_type: type,
                         is_locked: isLockedNow
                     }]);
                 } catch (err) {
                     console.error("Gagal kirim log ke Supabase:", err);
+                    dbLogs.unshift(logEntry);
+                    localStorage.setItem('exambro_logs', JSON.stringify(dbLogs));
+                    renderActivityLogs();
                 }
+            } else {
+                dbLogs.unshift(logEntry);
+                localStorage.setItem('exambro_logs', JSON.stringify(dbLogs));
+                renderActivityLogs();
             }
 
             if (isLockedNow) {
                 lockoutStudentExam(type);
             } else {
-                alertCustom(`PERINGATAN VIOLASI (${activeViolationsCount}/${selectedExam.maxViolations}): ${type}. Mohon tetap berada di mode layar penuh!`, "error");
+                alertCustom(`PERINGATAN VIOLASI (${activeViolationsCount}/${maxViolDisplay}): ${type}. Dilarang copy-paste, screenshot, atau keluar layar penuh!`, "error");
             }
         }
 
         function lockoutStudentExam(type) {
             isLockedOut = true;
-            document.getElementById('lockStudentName').innerText = `${studentData.name} (${studentData.class})`;
+            const currentStudentName = studentData.name || document.getElementById('studentNameInput').value.trim() || 'Peserta CBT';
+            const currentStudentClass = studentData.class || document.getElementById('studentClassInput').value.trim() || '-';
+
+            document.getElementById('lockStudentName').innerText = `${currentStudentName} (${currentStudentClass})`;
             document.getElementById('lockViolationType').innerText = type;
             document.getElementById('lockTime').innerText = new Date().toLocaleTimeString('id-ID') + " WIB";
 
@@ -1314,7 +1626,8 @@
             if (input === dbSecurity.supervisorCode) {
                 isLockedOut = false;
                 activeViolationsCount = 0;
-                document.getElementById('studentViolationBadge').innerText = `0 / ${selectedExam.maxViolations}`;
+                const maxViolDisplay = selectedExam.maxViolations >= 999 ? '∞' : selectedExam.maxViolations;
+                document.getElementById('studentViolationBadge').innerText = `0 / ${maxViolDisplay}`;
                 document.getElementById('studentViolationBadge').className = "font-bold text-emerald-400";
                 document.getElementById('supervisorUnlockInput').value = "";
                 document.getElementById('lockoutModal').classList.add('hidden');
@@ -1327,7 +1640,7 @@
         }
 
         /* =============================================================
-           10. EXIT EXAM & LOG LOGIC
+           10. EXIT EXAM & LOG MANAGEMENT
            ============================================================= */
         function promptExitExamModal() {
             document.getElementById('exitCodeInput').value = "";
@@ -1367,12 +1680,12 @@
                 <tr class="hover:bg-slate-900/50 transition">
                     <td class="p-3 font-mono text-slate-400">${escapeHtml(log.timestamp)}</td>
                     <td class="p-3 font-bold text-white">${escapeHtml(log.studentName)}</td>
-                    <td class="p-3 text-slate-400">${escapeHtml(log.classInfo)}</td>
-                    <td class="p-3 text-amber-400 font-semibold">${escapeHtml(log.violationType)}</td>
+                    <td class="p-3 text-amber-400 font-bold">${escapeHtml(log.classInfo)}</td>
+                    <td class="p-3 text-slate-300 font-semibold">${escapeHtml(log.violationType)}</td>
                     <td class="p-3 text-center">
                         ${log.isLocked 
                             ? `<span class="bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded text-[10px] font-bold">LOCKED</span>` 
-                            : `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">WARNING</span>`}
+                            : `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">RECORDED</span>`}
                     </td>
                 </tr>
             `).join('');
@@ -1399,15 +1712,15 @@
                 return;
             }
 
-            let csvContent = "data:text/csv;charset=utf-8,Waktu,Nama Siswa,Kelas/NISN,Jenis Pelanggaran,Status Lock\n";
+            let csvContent = "data:text/csv;charset=utf-8,Waktu,Nama Siswa,Kelas,Aktivitas / Pelanggaran,Status Lock\n";
             dbLogs.forEach(l => {
-                csvContent += `"${l.timestamp}","${l.studentName}","${l.classInfo}","${l.violationType}","${l.isLocked ? 'LOCKED' : 'WARNING'}"\n`;
+                csvContent += `"${l.timestamp}","${l.studentName}","${l.classInfo}","${l.violationType}","${l.isLocked ? 'LOCKED' : 'LOGGED'}"\n`;
             });
 
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Log_Violasi_EXAMBRO_${Date.now()}.csv`);
+            link.setAttribute("download", `Log_Siswa_EXAMBRO_${Date.now()}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
