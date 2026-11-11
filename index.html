@@ -756,8 +756,32 @@
         let studentData = JSON.parse(localStorage.getItem('exambro_student_identity')) || { name: '', class: '' };
 
         /* =============================================================
-           AI VOICE SYNTHESIZER (SEBUT NAMA, KELAS & VIOLASI)
+           AI VOICE SYNTHESIZER (WELCOME & VIOLATION)
            ============================================================= */
+        function speakWelcomeAI(name) {
+            try {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel(); // Hentikan suara sebelumnya jika ada
+
+                    const studentName = name || 'Peserta Ujian';
+                    const text = `Selamat Datang ${studentName} di Ujian Online SMA Negeri 1 Labuhan Haji, jangan lupa berdo'a dan jaga kejujuran, semoga sukses`;
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'id-ID';
+                    utterance.rate = 0.95;
+                    utterance.pitch = 1.0;
+
+                    const voices = window.speechSynthesis.getVoices();
+                    const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('ID'));
+                    if (idVoice) utterance.voice = idVoice;
+
+                    window.speechSynthesis.speak(utterance);
+                }
+            } catch (e) {
+                console.warn("AI Voice Welcome Error:", e);
+            }
+        }
+
         function speakViolationAI(name, classInfo, type) {
             try {
                 if ('speechSynthesis' in window) {
@@ -1505,6 +1529,9 @@
             isExamActive = true;
             isLockedOut = false;
 
+            // Bunyikan Suara AI Ucapan Selamat Datang Ujian Online SMAN 1 Labuhan Haji
+            speakWelcomeAI(identity.name);
+
             // Log Entry Login Siswa ke Supabase Realtime (Status: Informasi Masuk)
             await logStudentEntryToSupabase(identity.name, identity.class, selectedExam.title);
 
@@ -1786,8 +1813,10 @@
             const currentStudentName = studentData.name || document.getElementById('studentNameInput').value.trim() || 'Peserta CBT';
             const currentStudentClass = studentData.class || document.getElementById('studentClassInput').value.trim() || '-';
 
-            // Bunyikan AI Voice yang menyebutkan Nama, Kelas, dan Jenis Pelanggaran
-            speakViolationAI(currentStudentName, currentStudentClass, type);
+            // Peringatan Suara AI HANYA aktif mulai dari pelanggaran ke-2 dst (Pelanggaran ke-1 senyap tanpa suara)
+            if (activeViolationsCount > 1) {
+                speakViolationAI(currentStudentName, currentStudentClass, type);
+            }
 
             const maxViolDisplay = selectedExam.maxViolations >= 999 ? '∞' : selectedExam.maxViolations;
             const badge = document.getElementById('studentViolationBadge');
@@ -1829,7 +1858,8 @@
 
             if (isLockedNow) {
                 lockoutStudentExam(type);
-            } else {
+            } else if (activeViolationsCount > 1) {
+                // Notifikasi teks peringatan HANYA muncul untuk pelanggaran ke-2 dst
                 alertCustom(`PERINGATAN VIOLASI (${activeViolationsCount}/${maxViolDisplay}): ${type}. Dilarang copy-paste, screenshot, atau mengambangkan aplikasi!`, "error");
             }
         }
