@@ -42,10 +42,25 @@
     <style>
         /* Prevents text selection across the browser during active exam */
         .user-select-none {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important; /* Blokir menu popup tekan-lama di HP (Copy/Share/SS) */
+        }
+
+        /* Screen Shield Overlay untuk memblokir penangkapan gambar (Screenshot Buffer & Floating App) */
+        #screenShieldOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: #020617;
+            z-index: 99999;
+            color: #ef4444;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
 
         /* Prevent image dragging and pointer events for screenshot tools */
@@ -651,6 +666,13 @@
                 </button>
             </div>
         </div>
+    </div>
+
+    <!-- SCREEN SHIELD OVERLAY (MEMBLOKIR HASIL SCREENSHOT & FLOATING APP) -->
+    <div id="screenShieldOverlay" class="p-6">
+        <i class="fa-solid fa-shield-cat text-6xl mb-4 text-red-500 animate-pulse"></i>
+        <h2 class="text-2xl font-black text-white mb-2 uppercase tracking-wider">LAYAR DIPROTEKSI EXAMBRO</h2>
+        <p class="text-sm text-slate-300 max-w-md">Terdeteksi screenshot layar, gesture melayang (floating app), atau aplikasi aktif lain. Layar ujian disembunyikan otomatis.</p>
     </div>
 
     <!-- =============================================================== -->
@@ -1545,15 +1567,66 @@
         }
 
         /* Proteksi Anti Copy-Paste, Anti Floating App & Anti Screenshot */
+        function obscureExamScreenTemporarily(durationMs = 2500) {
+            const shield = document.getElementById('screenShieldOverlay');
+            if (shield) {
+                shield.classList.remove('hidden');
+                shield.style.display = 'flex';
+                setTimeout(() => {
+                    if (!isLockedOut) {
+                        shield.classList.add('hidden');
+                        shield.style.display = 'none';
+                    }
+                }, durationMs);
+            }
+        }
+
         function setupAntiCheatGlobalListeners() {
-            // DETEKSI FLOATING APP & SPLIT-SCREEN VIA RESIZE LISTENERS
+            // DETEKSI GESTUR 3 JARI (PEMICU SCREENSHOT KHUSUS HP ANDROID/IOS)
+            document.addEventListener('touchstart', (e) => {
+                if (isExamActive && e.touches.length >= 3) {
+                    e.preventDefault();
+                    clearClipboard();
+                    obscureExamScreenTemporarily(3000);
+                    triggerViolation("Gerakan 3 Jari (Gestur Screenshot HP) Terdeteksi");
+                }
+            }, { passive: false });
+
+            // PEMBERSIHAN SELEKSI TEKS REALTIME (PORTAL SISWA & UJIAN)
+            document.addEventListener('selectionchange', () => {
+                if ((currentRole === 'siswa' || isExamActive) && currentRole !== 'admin') {
+                    const sel = window.getSelection();
+                    if (sel && sel.removeAllRanges) {
+                        sel.removeAllRanges();
+                    }
+                }
+            });
+
+            // DETEKSI FLOATING APP, SPLIT-SCREEN & VISUAL VIEWPORT OVERLAY
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => {
+                    if (isExamActive && !isLockedOut && !isLaunchingExam) {
+                        const vvWidth = window.visualViewport.width;
+                        const vvHeight = window.visualViewport.height;
+                        const screenW = window.screen.width;
+                        const screenH = window.screen.height;
+
+                        // Jika ukuran viewport berkurang akibat aplikasi melayang (floating app/assistant/pip/split)
+                        if (vvWidth < screenW * 0.85 || vvHeight < screenH * 0.75) {
+                            obscureExamScreenTemporarily(3000);
+                            triggerViolation("Aplikasi Melayang (Floating App) / Split-Screen Terdeteksi");
+                        }
+                    }
+                });
+            }
+
             window.addEventListener('resize', () => {
                 if (isExamActive && !isLockedOut && !isLaunchingExam) {
                     const widthDiff = Math.abs(window.innerWidth - initialExamWidth);
                     const heightDiff = Math.abs(window.innerHeight - initialExamHeight);
 
-                    // Jika rasio ukuran window berubah drastis (misal aplikasi di-float / split-screen / pop-up)
                     if (widthDiff > 120 || heightDiff > 120) {
+                        obscureExamScreenTemporarily(3000);
                         triggerViolation("Aplikasi Mengembang / Layar Floating / Split-Screen Terdeteksi");
                     }
                 }
@@ -1592,7 +1665,7 @@
                 return false;
             });
 
-            // Disable Text Selection di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
+            // Disable Text Selection & Touch Callouts di Portal Siswa & Layar Ujian
             document.addEventListener('selectstart', (e) => {
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan seleksi teks di Admin
                 e.preventDefault();
@@ -1605,18 +1678,19 @@
                 return false;
             });
 
-            // Keyup Listener untuk PrintScreen Key
+            // Keyup Listener untuk PrintScreen Key (Pembersihan Klipboard Serta Merta)
             window.addEventListener('keyup', (e) => {
                 if (!isExamActive || isLaunchingExam) return;
                 if (e.key === 'PrintScreen' || e.code === 'PrintScreen') {
                     clearClipboard();
+                    obscureExamScreenTemporarily(4000);
                     triggerViolation("Upaya Screenshot (PrintScreen) Terdeteksi");
                 }
             });
 
             // Keydown Listener untuk Shortcut Terlarang & Screenshot Combinations
             document.addEventListener('keydown', (e) => {
-                if (currentRole === 'admin' && !isExamActive) return; // Izinkan semua shortcut di Admin
+                if (currentRole === 'admin' && !isExamActive) return;
 
                 const isCtrlOrMeta = e.ctrlKey || e.metaKey;
                 const key = e.key.toLowerCase();
@@ -1630,6 +1704,7 @@
                 if (isScreenshotCombo) {
                     e.preventDefault();
                     clearClipboard();
+                    obscureExamScreenTemporarily(4000);
                     if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Screenshot Terdeteksi");
                     return false;
                 }
@@ -1647,15 +1722,17 @@
                 }
             });
 
-            // Focus & Visibility Shift Listeners
+            // Focus & Visibility Shift Listeners (Layar Langsung Diproteksi Hitam)
             window.addEventListener('blur', () => {
                 if (isExamActive && !isLockedOut && !isLaunchingExam) {
+                    obscureExamScreenTemporarily(3000);
                     triggerViolation("Berpindah Tab / Membuka Aplikasi Lain / Mode Floating");
                 }
             });
 
             document.addEventListener('visibilitychange', () => {
                 if (isExamActive && document.hidden && !isLockedOut && !isLaunchingExam) {
+                    obscureExamScreenTemporarily(3000);
                     triggerViolation("Layar disembunyikan / Tab switched");
                 }
             });
