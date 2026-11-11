@@ -49,6 +49,14 @@
             -webkit-touch-callout: none !important; /* Blokir menu popup tekan-lama di HP (Copy/Share/SS) */
         }
 
+        /* Izinkan pengetikan & seleksi cursor pada semua elemen input, textarea, & select */
+        input, textarea, select {
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }
+
         /* Screen Shield Overlay untuk memblokir penangkapan gambar (Screenshot Buffer & Floating App) */
         #screenShieldOverlay {
             display: none;
@@ -1594,6 +1602,10 @@
 
             // PEMBERSIHAN SELEKSI TEKS REALTIME (PORTAL SISWA & UJIAN)
             document.addEventListener('selectionchange', () => {
+                const activeEl = document.activeElement;
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
+                    return; // Jangan hapus kursor/pengetikan di dalam form input
+                }
                 if ((currentRole === 'siswa' || isExamActive) && currentRole !== 'admin') {
                     const sel = window.getSelection();
                     if (sel && sel.removeAllRanges) {
@@ -1665,8 +1677,11 @@
                 return false;
             });
 
-            // Disable Text Selection & Touch Callouts di Portal Siswa & Layar Ujian
+            // Disable Text Selection & Touch Callouts di Portal Siswa & Layar Ujian (Kecuali pada Form Input)
             document.addEventListener('selectstart', (e) => {
+                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+                    return true; // Izinkan fokus & mengetik di input token/identitas
+                }
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan seleksi teks di Admin
                 e.preventDefault();
                 return false;
