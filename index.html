@@ -1630,8 +1630,8 @@
             // PEMBERSIHAN SELEKSI TEKS REALTIME (PORTAL SISWA & UJIAN)
             document.addEventListener('selectionchange', () => {
                 const activeEl = document.activeElement;
-                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
-                    return; // Jangan hapus kursor/pengetikan di dalam form input
+                if (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'IFRAME' || activeEl.isContentEditable)) {
+                    return; // Jangan hapus kursor/pengetikan di dalam form input atau iframe Google Form
                 }
                 if ((currentRole === 'siswa' || isExamActive) && currentRole !== 'admin') {
                     const sel = window.getSelection();
@@ -1688,8 +1688,16 @@
                 return false;
             });
 
-            // Disable Paste di Portal Siswa & Layar Ujian (Kecuali Dashboard Admin)
+            // Disable Paste di Portal Siswa & Layar Ujian (Kecuali pada Form Input / Autofill Perangkat / Google Form)
             document.addEventListener('paste', (e) => {
+                const target = e.target;
+                const activeEl = document.activeElement;
+                const isFormInput = (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.tagName === 'IFRAME' || target.isContentEditable)) ||
+                                    (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'IFRAME' || activeEl.isContentEditable));
+                
+                // Izinkan penempelan teks / autofill dari keyboard atau sistem HP jika berada pada form pengisian
+                if (isFormInput) return;
+
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan di Dashboard Admin
                 e.preventDefault();
                 if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Paste Tulisan/Teks Terdeteksi");
@@ -1706,8 +1714,9 @@
 
             // Disable Text Selection & Touch Callouts di Portal Siswa & Layar Ujian (Kecuali pada Form Input)
             document.addEventListener('selectstart', (e) => {
-                if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
-                    return true; // Izinkan fokus & mengetik di input token/identitas
+                const target = e.target;
+                if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.tagName === 'IFRAME' || target.isContentEditable)) {
+                    return true; // Izinkan fokus & autofill di input token/identitas/Google Form
                 }
                 if (currentRole === 'admin' && !isExamActive) return; // Izinkan seleksi teks di Admin
                 e.preventDefault();
@@ -1736,6 +1745,10 @@
 
                 const isCtrlOrMeta = e.ctrlKey || e.metaKey;
                 const key = e.key.toLowerCase();
+                const target = e.target;
+                const activeEl = document.activeElement;
+                const isFormInput = (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.tagName === 'IFRAME' || target.isContentEditable)) ||
+                                    (activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT' || activeEl.tagName === 'IFRAME' || activeEl.isContentEditable));
 
                 // Deteksi Shortcut Screenshot (PrtScn, Win+Shift+S, Cmd+Shift+3/4/5)
                 const isScreenshotCombo = 
@@ -1749,6 +1762,11 @@
                     obscureExamScreenTemporarily(4000);
                     if (isExamActive && !isLaunchingExam) triggerViolation("Upaya Screenshot Terdeteksi");
                     return false;
+                }
+
+                // Jika mengetik / menyalin / menempel di kolom input atau iframe Google Form (Ctrl+V / Ctrl+A), izinkan tanpa pelanggaran
+                if (isFormInput && isCtrlOrMeta && (key === 'v' || key === 'a')) {
+                    return;
                 }
 
                 if (!isExamActive || isLaunchingExam) return;
